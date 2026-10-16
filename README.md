@@ -72,11 +72,6 @@ Tested on the Xiaomi 15 Ultra with Security 13.5.8 and 13.6.5.
 3. Grant XSecurity its LSPosed permission, otherwise the app shows "Not active".
 4. Choose your switches and tap **Restart the apps** (needs root), or reboot.
 
-## Credits
-- Many hooks are adapted from [HyperCeiler](https://github.com/ReChronoRain/HyperCeiler) (AGPL-3.0)
-- UI: [compose-miuix-ui/miuix](https://github.com/compose-miuix-ui/miuix) (Apache-2.0)
-- [DexKit](https://github.com/LuckyPray/DexKit) (LGPL-3.0) and [libxposed](https://github.com/libxposed) (Apache-2.0)
-
 ## Source code and support
 - Source: https://github.com/Leekin2/XSecurity (AGPL-3.0)
 - Feedback and complaints on Telegram: [@emcleek](https://t.me/emcleek)
@@ -146,11 +141,6 @@ Xiaomi 15 Ultra'da Güvenlik 13.5.8 ve 13.6.5 ile test edildi.
 2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Güvenlik, Pil ve performans, Güncelleyici ve Joyose.
 3. XSecurity'ye LSPosed iznini verin; yoksa uygulama "Etkin değil" gösterir.
 4. Anahtarlarınızı seçip **Uygulamaları yeniden başlat**'a dokunun (root gerekir) ya da telefonu yeniden başlatın.
-
-### Teşekkürler
-- Birçok hook [HyperCeiler](https://github.com/ReChronoRain/HyperCeiler)'dan uyarlandı (AGPL-3.0)
-- Arayüz: [compose-miuix-ui/miuix](https://github.com/compose-miuix-ui/miuix) (Apache-2.0)
-- [DexKit](https://github.com/LuckyPray/DexKit) (LGPL-3.0) ve [libxposed](https://github.com/libxposed) (Apache-2.0)
 
 ### Kaynak kod ve destek
 - Kaynak: https://github.com/Leekin2/XSecurity (AGPL-3.0)

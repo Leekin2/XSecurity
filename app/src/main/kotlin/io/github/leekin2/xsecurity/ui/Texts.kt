@@ -105,7 +105,7 @@ private val TR = Texts(
     monet = "Duvar kâğıdı renkleri", monetSummary = "HyperOS görünümünde Monet renkleri",
     blur = "Bulanık üst çubuk", blurSummary = "Üst çubuk buzlu cam gibi görünür",
     groupApp = "Uygulama", openLsposed = "LSPosed'ı aç", openLsposedSummary = "Modülü ve kapsamı LSPosed'da yönetin",
-    about = "Hakkında", aboutSummary = { "XSecurity $it · HyperCeiler kurallarından uyarlamalar içerir" },
+    about = "Hakkında", aboutSummary = { "XSecurity $it" },
 )
 
 private val EN = Texts(
@@ -173,7 +173,7 @@ private val EN = Texts(
     monet = "Wallpaper colors", monetSummary = "Monet colors in the HyperOS look",
     blur = "Blurred top bar", blurSummary = "The top bar looks like frosted glass",
     groupApp = "App", openLsposed = "Open LSPosed", openLsposedSummary = "Manage the module and its scope in LSPosed",
-    about = "About", aboutSummary = { "XSecurity $it · includes adaptations of HyperCeiler rules" },
+    about = "About", aboutSummary = { "XSecurity $it" },
 )
 
 private val RU = Texts(
@@ -241,7 +241,7 @@ private val RU = Texts(
     monet = "Цвета обоев", monetSummary = "Цвета Monet в стиле HyperOS",
     blur = "Размытая верхняя панель", blurSummary = "Верхняя панель как матовое стекло",
     groupApp = "Приложение", openLsposed = "Открыть LSPosed", openLsposedSummary = "Управление модулем и областью в LSPosed",
-    about = "О приложении", aboutSummary = { "XSecurity $it · включает адаптации правил HyperCeiler" },
+    about = "О приложении", aboutSummary = { "XSecurity $it" },
 )
 
 private val ES = Texts(
@@ -309,7 +309,7 @@ private val ES = Texts(
     monet = "Colores del fondo", monetSummary = "Colores Monet en el estilo HyperOS",
     blur = "Barra superior difuminada", blurSummary = "La barra superior parece vidrio esmerilado",
     groupApp = "App", openLsposed = "Abrir LSPosed", openLsposedSummary = "Gestiona el módulo y su ámbito en LSPosed",
-    about = "Acerca de", aboutSummary = { "XSecurity $it · incluye adaptaciones de reglas de HyperCeiler" },
+    about = "Acerca de", aboutSummary = { "XSecurity $it" },
 )
 
 private val ZH = Texts(
@@ -377,7 +377,7 @@ private val ZH = Texts(
     monet = "壁纸取色", monetSummary = "HyperOS 风格下使用 Monet 颜色",
     blur = "模糊顶栏", blurSummary = "顶栏呈现毛玻璃效果",
     groupApp = "应用", openLsposed = "打开 LSPosed", openLsposedSummary = "在 LSPosed 中管理模块和作用域",
-    about = "关于", aboutSummary = { "XSecurity $it · 包含 HyperCeiler 规则的移植" },
+    about = "关于", aboutSummary = { "XSecurity $it" },
 )
 
 fun textsFor(language: AppLanguage) = when (language) {
