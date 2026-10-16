@@ -1,0 +1,11 @@
+build/
+app/build/
+.gradle/
+.kotlin/
+local.properties
+*.apk
+*.zip
+*.log
+*.db
+notes-*.md
+telegram_post.txt

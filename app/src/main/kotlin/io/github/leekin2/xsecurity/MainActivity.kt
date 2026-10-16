@@ -1,0 +1,162 @@
+package io.github.leekin2.xsecurity
+
+import android.content.ComponentName
+import android.content.Intent
+import android.content.SharedPreferences
+import android.net.Uri
+import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import io.github.leekin2.xsecurity.ui.Actions
+import io.github.leekin2.xsecurity.ui.AppLanguage
+import io.github.leekin2.xsecurity.ui.Look
+import io.github.leekin2.xsecurity.ui.MaterialScreen
+import io.github.leekin2.xsecurity.ui.MiuixScreen
+import io.github.leekin2.xsecurity.ui.UiState
+import io.github.leekin2.xsecurity.ui.XTheme
+import io.github.leekin2.xsecurity.ui.textsFor
+import io.github.libxposed.service.XposedService
+import java.util.Locale
+import java.util.concurrent.Executors
+
+class MainActivity : ComponentActivity() {
+    private var preferences: SharedPreferences? = null
+    private var state by mutableStateOf(UiState())
+    private val worker = Executors.newSingleThreadExecutor()
+    private val texts get() = textsFor(state.language)
+
+    /** The switches shown before LSPosed connects, and the screen's own choices. */
+    private val local get() = getSharedPreferences("switches", MODE_PRIVATE)
+    private val ui get() = getSharedPreferences("ui", MODE_PRIVATE)
+
+    private val serviceWatcher = java.util.function.Consumer<XposedService?> { service ->
+        runOnUiThread {
+            if (service == null) {
+                preferences = null
+                if (state.connected != null) state = state.copy(connected = false)
+            } else bind(service)
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        // First run follows the system language; afterwards the user's choice wins.
+        val language = ui.getString("language", null)?.let(AppLanguage::of) ?: AppLanguage.forSystem(Locale.getDefault().language)
+        state = state.copy(
+            values = Features.ALL.associateWith { local.getBoolean(it, Features.defaultValue(it)) },
+            language = language,
+            look = Look(ui.getBoolean("hyper", true), ui.getInt("theme", 0), ui.getBoolean("monet", false), ui.getBoolean("blur", false))
+        )
+        val actions = Actions(::change, ::restartApps, ::changeLanguage, ::changeLook,
+            { state = state.copy(settingsOpen = it) }, ::openLsposed)
+        setContent {
+            XTheme(state.look) {
+                if (state.look.hyper) MiuixScreen(state, actions) else MaterialScreen(state, actions)
+            }
+        }
+        XSecurityApp.watch(serviceWatcher)
+        // LSPosed hands its service right after the process starts; give a slow boot a few seconds.
+        window.decorView.postDelayed({ if (state.connected == null && XSecurityApp.current() == null) state = state.copy(connected = false) }, 6000)
+    }
+
+    override fun onDestroy() {
+        XSecurityApp.unwatch(serviceWatcher)
+        worker.shutdown()
+        super.onDestroy()
+    }
+
+    private fun bind(service: XposedService) {
+        val remote = runCatching { service.getRemotePreferences(Features.GROUP) }
+            .onFailure { android.util.Log.e(Hooks.TAG, "LSPosed settings unavailable", it) }.getOrNull()
+        preferences = remote
+        // The service itself proves the module is enabled; settings may still be unavailable.
+        state = state.copy(connected = true)
+        if (remote != null) {
+            val values = Features.ALL.associateWith { remote.getBoolean(it, Features.defaultValue(it)) }
+            local.edit().apply { values.forEach { (k, v) -> putBoolean(k, v) } }.apply()
+            state = state.copy(values = values)
+        }
+        requestMissingScope(service)
+    }
+
+    /** LSPosed drops an app from the scope when it is reinstalled; ask once per version to add it back. */
+    private fun requestMissingScope(service: XposedService) {
+        runCatching {
+            val scope = service.scope.toSet()
+            val declared = javaClass.classLoader!!.getResourceAsStream("META-INF/xposed/scope.list")
+                .bufferedReader().readLines().map(String::trim)
+            val missing = declared.filter { it.isNotEmpty() && it != "system" && it !in scope }
+                .filter { runCatching { packageManager.getPackageInfo(it, 0) }.isSuccess }
+            if (missing.isEmpty()) return
+            val version = packageManager.getPackageInfo(packageName, 0).longVersionCode
+            val asked = getSharedPreferences("scope", MODE_PRIVATE)
+            if (asked.getLong("asked", 0) == version) return
+            asked.edit().putLong("asked", version).apply()
+            service.requestScope(missing, object : XposedService.OnScopeEventListener {})
+        }
+    }
+
+    private fun change(key: String, value: Boolean) {
+        val remote = preferences
+        if (remote == null) {
+            Toast.makeText(this, texts.notConnected, Toast.LENGTH_SHORT).show()
+            return
+        }
+        remote.edit().putBoolean(key, value).apply()
+        local.edit().putBoolean(key, value).apply()
+        state = state.copy(values = state.values + (key to value))
+    }
+
+    private fun changeLanguage(language: AppLanguage) {
+        ui.edit().putString("language", language.code).apply()
+        state = state.copy(language = language)
+    }
+
+    private fun changeLook(look: Look) {
+        ui.edit().putBoolean("hyper", look.hyper).putInt("theme", look.theme)
+            .putBoolean("monet", look.monet).putBoolean("blur", look.blur).apply()
+        state = state.copy(look = look)
+    }
+
+    /** Opens XSecurity's page in LSPosed (or LSPosed's main screen where links are ignored). */
+    private fun openLsposed() {
+        val user = android.os.Process.myUid() / 100000
+        val module = Intent(Intent.ACTION_MAIN).setComponent(ComponentName("org.lsposed.manager", "org.lsposed.manager.ui.activity.MainActivity"))
+            .setData(Uri.parse("module://$packageName:$user"))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { startActivity(module) }
+            .recoverCatching { startActivity(packageManager.getLaunchIntentForPackage("org.lsposed.manager")!!) }
+            .onFailure { Toast.makeText(this, texts.notConnected, Toast.LENGTH_SHORT).show() }
+    }
+
+    /** Changes apply when the scope apps start again; this needs root. */
+    private fun restartApps() {
+        val t = texts
+        state = state.copy(restarting = true)
+        worker.execute {
+            // Root is proven by "id -u" printing 0; a process that is already gone is not a failure.
+            // Processes are found by exact name: "pkill -f" would also match (and kill) this shell.
+            val names = "com.miui.securitycenter com.miui.securitycenter.remote com.miui.securitycenter.power " +
+                "com.miui.securitycenter:ui com.miui.securitycenter.bootaware com.miui.powerkeeper com.xiaomi.joyose com.android.updater"
+            val ok = runCatching {
+                val process = ProcessBuilder("su", "-c",
+                    "id -u; am force-stop com.miui.securitycenter; am force-stop com.android.updater; " +
+                        "for p in \$(pidof $names); do kill \$p; done; true")
+                    .redirectErrorStream(true).start()
+                val output = String(process.inputStream.readBytes())
+                process.waitFor()
+                output.lineSequence().firstOrNull()?.trim() == "0"
+            }.getOrDefault(false)
+            runOnUiThread {
+                state = state.copy(restarting = false)
+                Toast.makeText(this, if (ok) t.restarted else t.restartFailed, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+}
