@@ -6,6 +6,7 @@
         <package android:name="com.android.updater" />
         <package android:name="com.xiaomi.joyose" />
         <package android:name="com.android.thememanager" />
+        <package android:name="com.miui.gallery" />
         <package android:name="org.lsposed.manager" />
     </queries>
     <application

@@ -46,6 +46,7 @@ XSecurity does the same on the **stock** apps with LSPosed hooks. Nothing is rep
 - Second space and dual apps, car accident detection, car sickness relief, storage defragmentation (FBO)
 - Dark mode: list every installed app under "Individual apps" instead of just a few
 - App store: show a chooser for `market://` links instead of forcing GetApps, and open GetApps detail pages in a floating window
+- Gallery: enable the Google Photos backup server option, as on the global ROM
 - Optional: shuffled app lock PIN pad
 
 The new optional switches default to off. Framework display/capture and Core Patch changes require **System Framework** scope (`system` in modern libxposed) and a reboot. Scope selection is fixed to the module's eight system/app targets; unrelated apps are hidden. Opening XSecurity requests missing targets and removes obsolete scope entries. A compiled hook is not proof that every ROM implements its target; unavailable targets keep stock behaviour and are logged.
@@ -83,7 +84,7 @@ Tested on the Xiaomi 15 Ultra with Security 13.5.8 and 13.6.5.
 
 ## Install
 1. Install XSecurity.
-2. Enable it in LSPosed and tick the scope: System Framework, Security, Battery and performance, Updater, Joyose and Themes.
+2. Enable it in LSPosed and tick the scope: System Framework, Security, Battery and performance, Updater, Joyose, Themes and Gallery.
 3. Grant XSecurity its LSPosed permission, otherwise the app shows "Not active".
 4. Choose your switches and tap **Restart the apps** (needs root), or reboot.
 
@@ -140,6 +141,7 @@ XSecurity aynısını LSPosed hook'larıyla **orijinal** uygulamalarda yapar. Hi
 - İkinci alan ve çift uygulama, kaza algılama, araç tutması rahatlatma, depolama birleştirme (FBO)
 - Karanlık mod: "Tek tek uygulamalar" altında birkaç uygulama yerine yüklü tüm uygulamalar
 - Uygulama mağazası: `market://` bağlantılarında GetApps'e zorlamak yerine seçici göster, GetApps detaylarını kayan pencerede aç
+- Galeri: global ROM'daki gibi Google Fotoğraflar yedekleme sunucusu seçeneğini aç
 - İsteğe bağlı: uygulama kilidinde karışık PIN klavyesi
 
 Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve Core Patch seçenekleri için **System Framework** kapsamı (modern libxposed'da `system`) ve yeniden başlatma gerekir. Kapsam, modülün kullandığı sekiz sistem/uygulama hedefiyle sabittir; ilgisiz uygulamalar gizlenir. XSecurity açıldığında eksik hedefler istenir ve eski kapsam kayıtları kaldırılır. Derlemenin geçmesi her ROM'da çalıştığı anlamına gelmez; bulunamayan hedeflerde özgün davranış korunur ve günlüğe yazılır.
@@ -168,7 +170,7 @@ Xiaomi 15 Ultra'da Güvenlik 13.5.8 ve 13.6.5 ile test edildi.
 
 ### Kurulum
 1. XSecurity'yi kurun.
-2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Sistem Çerçevesi, Güvenlik, Pil ve performans, Güncelleyici, Joyose ve Temalar.
+2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Sistem Çerçevesi, Güvenlik, Pil ve performans, Güncelleyici, Joyose, Temalar ve Galeri.
 3. XSecurity'ye LSPosed iznini verin; yoksa uygulama "Etkin değil" gösterir.
 4. Anahtarlarınızı seçip **Uygulamaları yeniden başlat**'a dokunun (root gerekir) ya da telefonu yeniden başlatın.
 

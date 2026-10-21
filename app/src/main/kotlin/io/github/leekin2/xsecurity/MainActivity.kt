@@ -98,7 +98,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             val scope = service.scope.toSet()
             val supported = setOf("system", "com.miui.securitycenter", "com.miui.powerkeeper",
-                "com.android.updater", "com.xiaomi.joyose", "com.android.thememanager")
+                "com.android.updater", "com.xiaomi.joyose", "com.android.thememanager", "com.miui.gallery")
             val obsolete = scope - supported
             if (obsolete.isNotEmpty()) service.removeScope(obsolete.toList())
             val missing = supported.filter { it !in scope }
@@ -174,7 +174,7 @@ class MainActivity : ComponentActivity() {
             // Root is proven by "id -u" printing 0; a process that is already gone is not a failure.
             // Processes are found by exact name: "pkill -f" would also match (and kill) this shell.
             val names = "com.miui.securitycenter com.miui.securitycenter.remote com.miui.securitycenter.power " +
-                "com.miui.securitycenter:ui com.miui.securitycenter.bootaware com.miui.powerkeeper com.xiaomi.joyose com.android.updater com.android.thememanager"
+                "com.miui.securitycenter:ui com.miui.securitycenter.bootaware com.miui.powerkeeper com.xiaomi.joyose com.android.updater com.android.thememanager com.miui.gallery"
             val ok = runCatching {
                 val process = ProcessBuilder("su", "-c",
                     "id -u; am force-stop com.miui.securitycenter; am force-stop com.android.updater; " +

@@ -43,6 +43,8 @@ import androidx.compose.material.icons.rounded.VideoCall
 import androidx.compose.material.icons.rounded.ViewSidebar
 import androidx.compose.material.icons.rounded.WifiTethering
 import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.CloudUpload
+import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -113,6 +115,8 @@ val SECTIONS = listOf(
     Section("store", Icons.Rounded.Storefront, Color(0xFF1FA2A6), listOf(
         Item(F.STORE_FORCE_CHOOSER, Icons.Rounded.Storefront),
         Item(F.STORE_GETAPPS_MINI, Icons.Rounded.PictureInPictureAlt))),
+    Section("gallery", Icons.Rounded.PhotoLibrary, Color(0xFF4285F4), listOf(
+        Item(F.GALLERY_GOOGLE_BACKUP, Icons.Rounded.CloudUpload))),
     Section("theme", Icons.Rounded.Palette, Color(0xFFD6409F), listOf(
         Item(F.THEME_THIRD_PARTY, Icons.Rounded.Palette))),
     Section("corepatch", Icons.Rounded.DeveloperBoard, Color(0xFF997744),

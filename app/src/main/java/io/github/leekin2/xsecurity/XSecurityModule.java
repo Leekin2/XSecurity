@@ -10,6 +10,7 @@ public final class XSecurityModule extends XposedModule {
     private static final String UPDATER = "com.android.updater";
     private static final String JOYOSE = "com.xiaomi.joyose";
     private static final String THEMES = "com.android.thememanager";
+    private static final String GALLERY = "com.miui.gallery";
     private final Hooks hooks = new Hooks(this);
     private String process;
 
@@ -37,6 +38,8 @@ public final class XSecurityModule extends XposedModule {
             new JoyoseHooks(hooks, param.getClassLoader()).install(info.sourceDir, info.dataDir);
         } else if (THEMES.equals(name) && (process == null || process.equals(THEMES))) {
             new ThemeHooks(hooks, param.getClassLoader(), info.sourceDir, info.dataDir).install();
+        } else if (GALLERY.equals(name)) {
+            new GalleryHooks(hooks, param.getClassLoader()).install();
         }
     }
 
