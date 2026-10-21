@@ -21,8 +21,10 @@ import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.PictureInPictureAlt
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Storefront
 import androidx.compose.material.icons.rounded.Screenshot
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.SimCard
@@ -108,6 +110,9 @@ val SECTIONS = listOf(
         Item(F.ROOT_CHECK_OFF, Icons.Rounded.Security),
         Item(F.USB_INSTALL_CHECK_OFF, Icons.Rounded.Usb),
         Item(F.DARK_MODE_ALL_APPS, Icons.Rounded.DarkMode))),
+    Section("store", Icons.Rounded.Storefront, Color(0xFF1FA2A6), listOf(
+        Item(F.STORE_FORCE_CHOOSER, Icons.Rounded.Storefront),
+        Item(F.STORE_GETAPPS_MINI, Icons.Rounded.PictureInPictureAlt))),
     Section("theme", Icons.Rounded.Palette, Color(0xFFD6409F), listOf(
         Item(F.THEME_THIRD_PARTY, Icons.Rounded.Palette))),
     Section("corepatch", Icons.Rounded.DeveloperBoard, Color(0xFF997744),

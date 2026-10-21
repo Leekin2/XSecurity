@@ -56,7 +56,7 @@ private val TR = Texts(
     sections = mapOf(
         "corepatch" to "Core Patch",
         "updater" to "OTA doğrulamasını kaldır", "charge" to "Şarj", "games" to "Oyunlar", "network" to "Ağ",
-        "battery" to "Pil", "media" to "Video ve arama", "system" to "İzinler ve sistem", "theme" to "Temalar",
+        "battery" to "Pil", "media" to "Video ve arama", "system" to "İzinler ve sistem", "store" to "Uygulama mağazası", "theme" to "Temalar",
     ),
     features = mapOf(
         F.UPDATER_NO_AUTO_DIALOG to Line("\"Otomatik güncellemeler açılsın mı?\" diyaloğunu kapat", "Güncelleyici her üç günde bir bu soruyu sormaz"),
@@ -103,6 +103,8 @@ private val TR = Texts(
         F.DOCK to Line("Yan çubukta 50 uygulama", "Yan çubuğa 16 yerine 50 uygulama eklenebilir"),
         F.FLAG_SECURE to Line("Ekran görüntüsü engelini kaldır", "Enable Screenshot: ekran görüntüsü/kaydı engellerini ve uygulamaların yakalama algılamasını kapatır. System Framework kapsamı ve yeniden başlatma gerekir. DRM korumalı içerik garanti değildir"),
         F.DARK_MODE_ALL_APPS to Line("Karanlık mod: tüm uygulamaları listele", "Karanlık mod ayarlarındaki \"Tek tek uygulamalar\" listesinde yalnızca birkaç uygulama yerine yüklü tüm uygulamalar görünür. System Framework kapsamı ve yeniden başlatma gerekir"),
+        F.STORE_FORCE_CHOOSER to Line("Mağaza yönlendirmede seçici göster", "Uygulama bağlantıları (market://) açılınca doğrudan GetApps'e gitmek yerine seçici çıkar; Google Play gibi başka bir mağaza seçebilirsiniz. System Framework kapsamı ve yeniden başlatma gerekir"),
+        F.STORE_GETAPPS_MINI to Line("GetApps'i kayan pencerede aç", "GetApps detay sayfasına yönlendirmeler küçük/kayan pencerede açılır (detailmini). System Framework kapsamı gerekir"),
     ) + extensionLines(AppLanguage.TR) + corePatchLines(AppLanguage.TR),
     restart = "Uygulamaları yeniden başlat",
     restartSummary = "Güvenlik, Pil ve performans, Güncelleyici, Joyose ve Temalar yeniden başlar (root)",
@@ -134,7 +136,7 @@ private val EN = Texts(
     sections = mapOf(
         "corepatch" to "Core Patch",
         "updater" to "Remove OTA verification", "charge" to "Charging", "games" to "Games", "network" to "Network",
-        "battery" to "Battery", "media" to "Video and calls", "system" to "Permissions and system", "theme" to "Themes",
+        "battery" to "Battery", "media" to "Video and calls", "system" to "Permissions and system", "store" to "App store", "theme" to "Themes",
     ),
     features = mapOf(
         F.UPDATER_NO_AUTO_DIALOG to Line("No \"Turn on automatic updates\" dialog", "The updater stops asking every three days"),
@@ -181,6 +183,8 @@ private val EN = Texts(
         F.DOCK to Line("50 apps in sidebar", "Add up to 50 apps to the sidebar instead of 16"),
         F.FLAG_SECURE to Line("Remove screenshot block", "Enable Screenshot: removes screenshot/recording restrictions and app capture detection. Requires System Framework scope and reboot. DRM-protected content is not guaranteed capturable"),
         F.DARK_MODE_ALL_APPS to Line("Dark mode: list all apps", "The \"Individual apps\" list in dark mode settings shows every installed app instead of just a few. Requires System Framework scope and reboot"),
+        F.STORE_FORCE_CHOOSER to Line("Show chooser for store redirects", "When an app link (market://) opens, a chooser appears instead of going straight to GetApps, so you can pick another store such as Google Play. Requires System Framework scope and reboot"),
+        F.STORE_GETAPPS_MINI to Line("Open GetApps in a floating window", "Redirects to a GetApps detail page open as a small floating window (detailmini). Requires System Framework scope"),
     ) + extensionLines(AppLanguage.EN) + corePatchLines(AppLanguage.EN),
     restart = "Restart the apps",
     restartSummary = "Restarts Security, Battery and performance, Updater, Joyose and Themes (root)",
@@ -212,7 +216,7 @@ private val RU = Texts(
     sections = mapOf(
         "corepatch" to "Core Patch",
         "updater" to "Убрать проверку OTA", "charge" to "Зарядка", "games" to "Игры", "network" to "Сеть",
-        "battery" to "Батарея", "media" to "Видео и звонки", "system" to "Разрешения и система", "theme" to "Темы",
+        "battery" to "Батарея", "media" to "Видео и звонки", "system" to "Разрешения и система", "store" to "Магазин приложений", "theme" to "Темы",
     ),
     features = mapOf(
         F.UPDATER_NO_AUTO_DIALOG to Line("Без вопроса «Включить автообновления?»", "Приложение обновлений перестаёт спрашивать каждые три дня"),
@@ -259,6 +263,8 @@ private val RU = Texts(
         F.DOCK to Line("50 приложений на боковой панели", "До 50 приложений на панели вместо 16"),
         F.FLAG_SECURE to Line("Убрать запрет скриншотов", "Enable Screenshot: убирает ограничения снимков/записи и обнаружение захвата приложениями. Нужны System Framework и перезагрузка. Захват DRM-контента не гарантируется"),
         F.DARK_MODE_ALL_APPS to Line("Тёмная тема: показать все приложения", "В списке \"Отдельные приложения\" настроек тёмной темы показываются все установленные приложения, а не только несколько. Нужны System Framework и перезагрузка"),
+        F.STORE_FORCE_CHOOSER to Line("Показывать выбор при переходе в магазин", "При открытии ссылки (market://) вместо перехода сразу в GetApps появляется выбор, и можно указать другой магазин, например Google Play. Нужны System Framework и перезагрузка"),
+        F.STORE_GETAPPS_MINI to Line("Открывать GetApps в плавающем окне", "Переходы на страницу приложения в GetApps открываются в маленьком плавающем окне (detailmini). Нужен System Framework"),
     ) + extensionLines(AppLanguage.RU) + corePatchLines(AppLanguage.RU),
     restart = "Перезапустить приложения",
     restartSummary = "Перезапуск Безопасности, Батареи, обновлений, Joyose и Тем (root)",
@@ -290,7 +296,7 @@ private val ES = Texts(
     sections = mapOf(
         "corepatch" to "Core Patch",
         "updater" to "Quitar la verificación OTA", "charge" to "Carga", "games" to "Juegos", "network" to "Red",
-        "battery" to "Batería", "media" to "Vídeo y llamadas", "system" to "Permisos y sistema", "theme" to "Temas",
+        "battery" to "Batería", "media" to "Vídeo y llamadas", "system" to "Permisos y sistema", "store" to "Tienda de apps", "theme" to "Temas",
     ),
     features = mapOf(
         F.UPDATER_NO_AUTO_DIALOG to Line("Sin el diálogo «¿Activar actualizaciones automáticas?»", "El actualizador deja de preguntar cada tres días"),
@@ -337,6 +343,8 @@ private val ES = Texts(
         F.DOCK to Line("50 apps en la barra lateral", "Hasta 50 apps en la barra lateral en lugar de 16"),
         F.FLAG_SECURE to Line("Quitar el bloqueo de capturas", "Enable Screenshot: quita restricciones de captura/grabación y detección por apps. Requiere System Framework y reinicio. No se garantiza capturar contenido con DRM"),
         F.DARK_MODE_ALL_APPS to Line("Modo oscuro: listar todas las apps", "La lista \"Aplicaciones individuales\" del modo oscuro muestra todas las apps instaladas en vez de solo unas pocas. Requiere System Framework y reinicio"),
+        F.STORE_FORCE_CHOOSER to Line("Mostrar selector al ir a la tienda", "Al abrir un enlace (market://) aparece un selector en vez de ir directo a GetApps, así puedes elegir otra tienda como Google Play. Requiere System Framework y reinicio"),
+        F.STORE_GETAPPS_MINI to Line("Abrir GetApps en ventana flotante", "Las redirecciones a una página de GetApps se abren en una ventana flotante pequeña (detailmini). Requiere System Framework"),
     ) + extensionLines(AppLanguage.ES) + corePatchLines(AppLanguage.ES),
     restart = "Reiniciar las apps",
     restartSummary = "Reinicia Seguridad, Batería, el actualizador, Joyose y Temas (root)",
@@ -368,7 +376,7 @@ private val ZH = Texts(
     sections = mapOf(
         "corepatch" to "Core Patch",
         "updater" to "移除 OTA 验证", "charge" to "充电", "games" to "游戏", "network" to "网络",
-        "battery" to "电池", "media" to "视频与通话", "system" to "权限与系统", "theme" to "主题",
+        "battery" to "电池", "media" to "视频与通话", "system" to "权限与系统", "store" to "应用商店", "theme" to "主题",
     ),
     features = mapOf(
         F.UPDATER_NO_AUTO_DIALOG to Line("关闭“开启自动更新”弹窗", "系统更新不再每三天询问一次"),
@@ -415,6 +423,8 @@ private val ZH = Texts(
         F.DOCK to Line("侧边栏 50 个应用", "侧边栏最多可添加 50 个应用，而非 16 个"),
         F.FLAG_SECURE to Line("移除截屏限制", "Enable Screenshot：移除截屏/录屏限制及应用的屏幕捕获检测。需勾选 System Framework 并重启；不保证能捕获 DRM 保护内容"),
         F.DARK_MODE_ALL_APPS to Line("深色模式：列出所有应用", "深色模式设置的\"单个应用\"列表显示所有已安装应用，而不只是少数几个。需勾选 System Framework 并重启"),
+        F.STORE_FORCE_CHOOSER to Line("跳转应用商店时显示选择器", "打开应用链接（market://）时不再直接跳到应用商店，而是弹出选择器，可改用 Google Play 等其他商店。需勾选 System Framework 并重启"),
+        F.STORE_GETAPPS_MINI to Line("以悬浮窗打开应用商店", "跳转到应用商店详情页时以小悬浮窗打开（detailmini）。需勾选 System Framework"),
     ) + extensionLines(AppLanguage.ZH) + corePatchLines(AppLanguage.ZH),
     restart = "重启应用",
     restartSummary = "重启手机管家、电量与性能、系统更新、Joyose 和主题（需要 root）",

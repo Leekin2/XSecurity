@@ -52,6 +52,7 @@ public final class XSecurityModule extends XposedModule {
         new CorePatchHooks(hooks, param.getClassLoader()).install();
         new DisplayPolicyHooks(hooks, param.getClassLoader()).install();
         new DarkModeHooks(hooks, param.getClassLoader()).install();
+        new AppStoreHooks(hooks, param.getClassLoader()).install();
         if (Features.enabled(Features.FLAG_SECURE)) {
             new FlagSecureHooks(hooks, param.getClassLoader()).install();
         }
