@@ -17,11 +17,15 @@ import androidx.compose.material.icons.rounded.HourglassDisabled
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Insights
 import androidx.compose.material.icons.rounded.Keyboard
-import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Screenshot
+import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material.icons.rounded.SimCard
+import androidx.compose.material.icons.rounded.Usb
 import androidx.compose.material.icons.rounded.SignalCellularAlt
 import androidx.compose.material.icons.rounded.SlowMotionVideo
 import androidx.compose.material.icons.rounded.Speed
@@ -58,6 +62,7 @@ val SECTIONS = listOf(
         Item(F.SUPER_WIRELESS, Icons.Rounded.WifiTethering))),
     Section("games", Icons.Rounded.SportsEsports, Color(0xFFE5484D), listOf(
         Item(F.GAME_FPS, Icons.Rounded.Speed),
+        Item(F.GAME_KEEP_ENABLED, Icons.Rounded.SportsEsports),
         Item(F.GAME_MODES, Icons.Rounded.Bolt),
         Item(F.GT_SUPER_RES, Icons.Rounded.SlowMotionVideo),
         Item(F.GT_HDR, Icons.Rounded.HdrOn),
@@ -71,6 +76,7 @@ val SECTIONS = listOf(
         Item(F.JOYOSE_GPU, Icons.Rounded.DeveloperBoard),
         Item(F.JOYOSE_CLOUD_OFF, Icons.Rounded.CloudOff))),
     Section("network", Icons.Rounded.CellTower, Color(0xFF8E4EC6), listOf(
+        Item(F.NET_APP_CONTROLS, Icons.Rounded.Wifi),
         Item(F.NET_QUOTA_KEEP, Icons.Rounded.SignalCellularAlt),
         Item(F.NET_HOTSPOT_KEEP, Icons.Rounded.Wifi),
         Item(F.DATA_USAGE, Icons.Rounded.DataUsage))),
@@ -80,13 +86,14 @@ val SECTIONS = listOf(
         Item(F.BATTERY_HEALTH, Icons.Rounded.BatteryStd),
         Item(F.BATTERY_LIFE, Icons.Rounded.HealthAndSafety),
         Item(F.POWER_EXTRAS, Icons.Rounded.PowerSettingsNew),
+        Item(F.POWER_SAVE_REFRESH, Icons.Rounded.Speed),
+        Item(F.POWER_SAVE_BRIGHTNESS, Icons.Rounded.Tune),
         Item(F.LOW_BATTERY_QUIET, Icons.Rounded.NotificationsOff))),
     Section("media", Icons.Rounded.Movie, Color(0xFFE0558E), listOf(
         Item(F.VIDEO_TOOLBOX, Icons.Rounded.Movie),
         Item(F.CALL_TOOLBOX, Icons.Rounded.VideoCall))),
-    Section("background", Icons.Rounded.Memory, Color(0xFF0FA4AF), listOf(
-        Item(F.PK_NO_KILL, Icons.Rounded.Memory))),
     Section("system", Icons.Rounded.Info, Color(0xFF6E7787), listOf(
+        Item(F.FLAG_SECURE, Icons.Rounded.Screenshot),
         Item(F.APP_INFO, Icons.Rounded.Info),
         Item(F.TOOLBOX, Icons.Rounded.Crop),
         Item(F.DOCK, Icons.Rounded.ViewSidebar),
@@ -95,7 +102,14 @@ val SECTIONS = listOf(
         Item(F.CAR_SICKNESS, Icons.Rounded.CarCrash),
         Item(F.SECOND_SPACE, Icons.Rounded.Group),
         Item(F.WARNINGS, Icons.Rounded.CarCrash),
-        Item(F.FBO, Icons.Rounded.Storage))),
+        Item(F.FBO, Icons.Rounded.Storage),
+        Item(F.SIM_SUCCESS_DIALOG_OFF, Icons.Rounded.SimCard),
+        Item(F.ROOT_CHECK_OFF, Icons.Rounded.Security),
+        Item(F.USB_INSTALL_CHECK_OFF, Icons.Rounded.Usb))),
+    Section("theme", Icons.Rounded.Palette, Color(0xFFD6409F), listOf(
+        Item(F.THEME_THIRD_PARTY, Icons.Rounded.Palette))),
+    Section("corepatch", Icons.Rounded.DeveloperBoard, Color(0xFF997744),
+        F.CORE_PATCH.map { Item(it, Icons.Rounded.DeveloperBoard) }),
 )
 
 /**

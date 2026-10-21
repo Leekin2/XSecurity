@@ -78,6 +78,12 @@ class MainActivity : ComponentActivity() {
         // The service itself proves the module is enabled; settings may still be unavailable.
         state = state.copy(connected = true)
         if (remote != null) {
+            // Retired features are removed from both UI and hooks, including stored choices.
+            val retired = arrayOf("powerkeeper_no_kill", "autostart_keep_grants", "system_reduce_cleaning",
+                "developer_signature_test", "developer_downgrade_test", "developer_test_packages", "developer_certificate_sha256",
+                "ims_icon_support", "ims_restart_pending")
+            remote.edit().apply { retired.forEach { remove(it) } }.apply()
+            local.edit().apply { retired.forEach { remove(it) } }.apply()
             val values = Features.ALL.associateWith { remote.getBoolean(it, Features.defaultValue(it)) }
             local.edit().apply { values.forEach { (k, v) -> putBoolean(k, v) } }.apply()
             state = state.copy(values = values)
@@ -85,21 +91,24 @@ class MainActivity : ComponentActivity() {
         requestMissingScope(service)
     }
 
-    /** LSPosed drops an app from the scope when it is reinstalled; ask once per version to add it back. */
+    /** Keep the fixed module targets selected; remove obsolete or unrelated scope entries. */
     private fun requestMissingScope(service: XposedService) {
         runCatching {
             val scope = service.scope.toSet()
-            val declared = javaClass.classLoader!!.getResourceAsStream("META-INF/xposed/scope.list")
-                .bufferedReader().readLines().map(String::trim)
-            val missing = declared.filter { it.isNotEmpty() && it != "system" && it !in scope }
-                .filter { runCatching { packageManager.getPackageInfo(it, 0) }.isSuccess }
+            val supported = setOf("system", "com.miui.securitycenter", "com.miui.powerkeeper",
+                "com.android.updater", "com.xiaomi.joyose", "com.android.thememanager")
+            val obsolete = scope - supported
+            if (obsolete.isNotEmpty()) service.removeScope(obsolete.toList())
+            val missing = supported.filter { it !in scope }
+                .filter { it == "system" || runCatching { packageManager.getPackageInfo(it, 0) }.isSuccess }
             if (missing.isEmpty()) return
             val version = packageManager.getPackageInfo(packageName, 0).longVersionCode
             val asked = getSharedPreferences("scope", MODE_PRIVATE)
-            if (asked.getLong("asked", 0) == version) return
-            asked.edit().putLong("asked", version).apply()
+            val requestKey = "asked:" + missing.sorted().joinToString("|")
+            if (asked.getLong(requestKey, 0) == version) return
             service.requestScope(missing, object : XposedService.OnScopeEventListener {})
-        }
+            asked.edit().putLong(requestKey, version).apply()
+        }.onFailure { android.util.Log.e(Hooks.TAG, "Scope request failed", it) }
     }
 
     private fun change(key: String, value: Boolean) {
@@ -111,6 +120,10 @@ class MainActivity : ComponentActivity() {
         remote.edit().putBoolean(key, value).apply()
         local.edit().putBoolean(key, value).apply()
         state = state.copy(values = state.values + (key to value))
+        if (key in Features.CORE_PATCH || key in arrayOf(Features.FLAG_SECURE, Features.POWER_SAVE_REFRESH, Features.POWER_SAVE_BRIGHTNESS)) {
+            Toast.makeText(this, io.github.leekin2.xsecurity.ui.frameworkRestartHint(state.language), Toast.LENGTH_LONG).show()
+        }
+        if (value) XSecurityApp.current()?.let(::requestMissingScope)
     }
 
     private fun changeLanguage(language: AppLanguage) {
@@ -143,7 +156,7 @@ class MainActivity : ComponentActivity() {
             // Root is proven by "id -u" printing 0; a process that is already gone is not a failure.
             // Processes are found by exact name: "pkill -f" would also match (and kill) this shell.
             val names = "com.miui.securitycenter com.miui.securitycenter.remote com.miui.securitycenter.power " +
-                "com.miui.securitycenter:ui com.miui.securitycenter.bootaware com.miui.powerkeeper com.xiaomi.joyose com.android.updater"
+                "com.miui.securitycenter:ui com.miui.securitycenter.bootaware com.miui.powerkeeper com.xiaomi.joyose com.android.updater com.android.thememanager"
             val ok = runCatching {
                 val process = ProcessBuilder("su", "-c",
                     "id -u; am force-stop com.miui.securitycenter; am force-stop com.android.updater; " +

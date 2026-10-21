@@ -31,14 +31,15 @@ final class SecurityHooks {
     }
 
     // Processes of the Security app. Each hook runs only where the code it changes runs; the other
-    // processes (.bootaware, .cache, :cache, .uniauth) get nothing, so they stay out of the log too.
-    private static final int MAIN = 1, REMOTE = 2, UI = 4, POWER_PROC = 8;
+    // processes (.cache, :cache, .uniauth) get nothing, so they stay out of the log too.
+    private static final int MAIN = 1, REMOTE = 2, UI = 4, POWER_PROC = 8, BOOT = 16;
 
     static int processFlag(String process) {
         if (process == null || process.equals("com.miui.securitycenter")) return MAIN;
         if (process.equals("com.miui.securitycenter.remote")) return REMOTE;
         if (process.equals("com.miui.securitycenter:ui")) return UI;
         if (process.equals("com.miui.securitycenter.power")) return POWER_PROC;
+        if (process.equals("com.miui.securitycenter.bootaware")) return BOOT;
         return 0;
     }
 
@@ -60,8 +61,20 @@ final class SecurityHooks {
         if (in(here, MAIN | REMOTE | POWER_PROC) && Features.enabled(Features.LOW_BATTERY_QUIET)) run("quiet low battery", () -> new SecurityExtraHooks(hooks, loader).quietLowBattery());
         if (in(here, REMOTE) && Features.enabled(Features.NET_QUOTA_KEEP)) run("keep mobile data", () -> new SecurityExtraHooks(hooks, loader).keepMobileData());
         if (in(here, REMOTE) && Features.enabled(Features.NET_HOTSPOT_KEEP)) run("keep hotspot", () -> new SecurityExtraHooks(hooks, loader).keepHotspot());
+        if (in(here, MAIN) && Features.enabled(Features.NET_APP_CONTROLS)) run("per-app network controls", () -> new NetworkControlHooks(hooks, loader).install());
+        if (in(here, BOOT) && Features.enabled(Features.SIM_SUCCESS_DIALOG_OFF)) run("SIM verification dialog", this::simSuccessDialog);
+        if (in(here, MAIN | REMOTE | POWER_PROC)) {
+            try (DexTargets targets = new DexTargets(loader, apkPath, dataDir)) {
+                SecurityBehaviorHooks behavior = new SecurityBehaviorHooks(hooks);
+                if (Features.enabled(Features.POWER_SAVE_REFRESH)) run("power saver keeps refresh", () -> behavior.keepRefresh(targets));
+                if (Features.enabled(Features.POWER_SAVE_BRIGHTNESS)) run("power saver keeps brightness", () -> behavior.keepBrightness(targets));
+            } catch (Throwable failure) {
+                hooks.error("Power saver scan unavailable; stock behaviour kept", failure);
+            }
+        }
         if (!in(here, MAIN | REMOTE | UI)) return;
         try (DexTargets targets = new DexTargets(loader, apkPath, dataDir)) {
+            if (Features.enabled(Features.GAME_KEEP_ENABLED)) run("Game Turbo stays enabled", () -> new SecurityBehaviorHooks(hooks).keepGameEnabled(targets));
             if (in(here, MAIN | REMOTE) && Features.enabled(Features.CHARGE_PROTECT)) run("charge protection", () -> chargeProtect(targets));
             if (in(here, MAIN | UI) && Features.enabled(Features.DOCK)) run("sidebar 50 apps (new)", () -> dockLimitNew(targets));
             if (Features.enabled(Features.GT_HDR)) run("game HDR", () -> alwaysTrue(targets, "gt_hdr", "support_displayfeature_gamemode_HDR"));
@@ -69,6 +82,9 @@ final class SecurityHooks {
             if (Features.enabled(Features.GT_DYNAMIC_PERF)) run("dynamic performance", () -> alwaysTrue(targets, "gt_dynperf", "persist.sys.smartop.support_dynamic_performance"));
             if (Features.enabled(Features.GT_TOUCH)) run("game touch", () -> alwaysTrue(targets, "gt_touch", "support_touchfeature_gamemode"));
             if (Features.enabled(Features.GT_MI_TIME)) run("game Mi time", () -> alwaysTrue(targets, "gt_mitime", "support_game_mi_time"));
+            if (in(here, MAIN) && Features.enabled(Features.APP_INFO)) run("open by default", () -> openByDefault(targets));
+            if (in(here, MAIN | REMOTE) && Features.enabled(Features.ROOT_CHECK_OFF)) run("root check off", () -> alwaysFalse(targets, "root_check", "key_check_item_root"));
+            if (in(here, MAIN | REMOTE) && Features.enabled(Features.USB_INSTALL_CHECK_OFF)) run("USB install check off", () -> alwaysFalse(targets, "usb_install_check", "permcenter_install_intercept_enabled"));
             if (in(here, MAIN) && Features.enabled(Features.SECOND_SPACE)) run("second space", () -> secondSpace(targets));
             if (in(here, REMOTE) && Features.enabled(Features.DATA_USAGE)) run("data usage in control center", () -> dataUsage(targets));
             if (in(here, MAIN) && Features.enabled(Features.TOOLBOX)) run("toolbox layout", () -> toolboxLayout(targets));
@@ -628,12 +644,7 @@ final class SecurityHooks {
             android.content.pm.PackageManager pm = host.getPackageManager();
             switch (action) {
                 case "open": {
-                    android.content.Intent launch = pm.getLaunchIntentForPackage(pkg);
-                    if (launch == null) {
-                        android.widget.Toast.makeText(host, tr ? "Açılabilir ekranı yok" : "Nothing to open", android.widget.Toast.LENGTH_SHORT).show();
-                    } else {
-                        host.startActivity(launch);
-                    }
+                    launchApp(host, pkg, tr);
                     break;
                 }
                 case "path": {
@@ -656,6 +667,16 @@ final class SecurityHooks {
         } catch (Throwable failure) {
             android.widget.Toast.makeText(host, String.valueOf(failure.getMessage()), android.widget.Toast.LENGTH_LONG).show();
         }
+    }
+
+    static void launchApp(android.app.Activity host, String pkg, boolean tr) {
+        android.content.Intent launch = host.getPackageManager().getLaunchIntentForPackage(pkg);
+        if (launch == null) {
+            android.widget.Toast.makeText(host, tr ? "Açılabilir ekranı yok" : "Nothing to open", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        launch.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+        host.startActivity(launch);
     }
 
     private static final int DOCK_LIMIT = 50;
@@ -1183,10 +1204,109 @@ final class SecurityHooks {
 
     // --- Game Turbo ---------------------------------------------------------------------------
 
+    /**
+     * App info: the "Clear defaults" row becomes "Open by default" (as in HyperCeiler / MIUIQOL): it
+     * shows whether the app opens its supported links and leads to the system page for it.
+     */
+    private void openByDefault(DexTargets targets) throws Throwable {
+        Class<?> fragment = Class.forName("com.miui.appmanager.fragment.ApplicationsDetailsFragment", false, loader);
+        Class<?> preference = Class.forName("androidx.preference.Preference", false, loader);
+        Method findPreference = fragment.getMethod("findPreference", CharSequence.class);
+        Method setTitle = preference.getMethod("setTitle", CharSequence.class);
+        Method setSummary = preference.getMethod("setSummary", CharSequence.class);
+        Method getKey = preference.getMethod("getKey");
+        Method activityOf = fragment.getMethod("getActivity");
+        int loaded = 0;
+        for (Method method : targets.usingStrings("app_default_loaded", "void", "enter_way")) {
+            if (method.getDeclaringClass() != fragment) continue;
+            loaded++;
+            hooks.install(method, chain -> {
+                Object result = chain.proceed();
+                try {
+                    android.app.Activity host = (android.app.Activity) activityOf.invoke(chain.getThisObject());
+                    String pkg = packageOf(host);
+                    Object row = findPreference.invoke(chain.getThisObject(), "app_default_pref");
+                    if (host == null || pkg == null || row == null) return result;
+                    boolean tr = "tr".equals(Locale.getDefault().getLanguage());
+                    setTitle.invoke(row, tr ? "Varsayılan olarak aç" : "Open by default");
+                    setSummary.invoke(row, linkState(host, pkg, tr));
+                } catch (Throwable failure) {
+                    hooks.error("open by default row", failure);
+                }
+                return result;
+            });
+        }
+        if (loaded == 0) throw new NoSuchMethodException("ApplicationsDetailsFragment load finished");
+        hooks.install(fragment.getMethod("onPreferenceClick", preference), chain -> {
+            try {
+                if ("app_default_pref".equals(getKey.invoke(chain.getArg(0)))) {
+                    android.app.Activity host = (android.app.Activity) activityOf.invoke(chain.getThisObject());
+                    String pkg = packageOf(host);
+                    if (host != null && pkg != null) {
+                        host.startActivity(new android.content.Intent("android.settings.APP_OPEN_BY_DEFAULT_SETTINGS",
+                                android.net.Uri.parse("package:" + pkg)));
+                        return true;
+                    }
+                }
+            } catch (Throwable failure) {
+                hooks.error("open by default click", failure);
+            }
+            return chain.proceed();
+        });
+    }
+
+    private static String linkState(Context context, String pkg, boolean tr) {
+        boolean allowed = false;
+        try {
+            android.content.pm.verify.domain.DomainVerificationManager manager =
+                    context.getSystemService(android.content.pm.verify.domain.DomainVerificationManager.class);
+            android.content.pm.verify.domain.DomainVerificationUserState state = manager == null ? null : manager.getDomainVerificationUserState(pkg);
+            allowed = state != null && state.isLinkHandlingAllowed();
+        } catch (Throwable ignored) {
+        }
+        if (tr) return allowed ? "Desteklenen bağlantıları açar" : "Bağlantıları açmaz";
+        return allowed ? "Opens supported links" : "Doesn't open links";
+    }
+
     private void alwaysTrue(DexTargets targets, String name, String feature) throws Throwable {
         List<Method> methods = targets.usingStrings(name, "boolean", feature);
         if (methods.isEmpty()) throw new NoSuchMethodException("No check uses " + feature);
         for (Method method : methods) hooks.constant(method, true);
+    }
+
+    /** Getters of the app's own on/off settings (no arguments): read as off. */
+    private void alwaysFalse(DexTargets targets, String name, String key) throws Throwable {
+        int hooked = 0;
+        for (Method method : targets.usingStrings(name, "boolean", key)) {
+            if (method.getParameterCount() != 0) continue;
+            hooks.constant(method, false);
+            hooked++;
+        }
+        if (hooked == 0) throw new NoSuchMethodException("No getter reads " + key);
+    }
+
+    /** The "SIM security verification completed" dialog shown after boot closes at once. */
+    private void simSuccessDialog() throws Throwable {
+        for (String name : new String[]{"com.miui.simlock.activity.SuccessDialogActivity",
+                "com.miui.simlock.activity.SuccessDialogNormalActivity"}) {
+            Class<?> activity;
+            try {
+                activity = Class.forName(name, false, loader);
+            } catch (ClassNotFoundException missing) {
+                continue;
+            }
+            Method create;
+            try {
+                create = activity.getDeclaredMethod("onCreate", android.os.Bundle.class);
+            } catch (NoSuchMethodException inherited) {
+                continue;
+            }
+            hooks.install(create, chain -> {
+                Object result = chain.proceed();
+                ((android.app.Activity) chain.getThisObject()).finish();
+                return result;
+            });
+        }
     }
 
     /** Super resolution / frame insertion (YSRE) and the GPU tuner's support answer. */

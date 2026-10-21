@@ -9,6 +9,7 @@ public final class XSecurityModule extends XposedModule {
     private static final String POWERKEEPER = "com.miui.powerkeeper";
     private static final String UPDATER = "com.android.updater";
     private static final String JOYOSE = "com.xiaomi.joyose";
+    private static final String THEMES = "com.android.thememanager";
     private final Hooks hooks = new Hooks(this);
     private String process;
 
@@ -17,6 +18,7 @@ public final class XSecurityModule extends XposedModule {
         process = param.getProcessName();
         try { Features.attach(getRemotePreferences(Features.GROUP)); }
         catch (Throwable failure) { hooks.error("Settings unavailable; defaults used", failure); }
+        hooks.info("module loaded in " + process + "; settings=" + Features.ready());
     }
 
     @Override
@@ -33,6 +35,24 @@ public final class XSecurityModule extends XposedModule {
             new UpdaterHooks(hooks, param.getClassLoader()).install(info.sourceDir, info.dataDir);
         } else if (JOYOSE.equals(name) && (process == null || process.equals(JOYOSE))) {
             new JoyoseHooks(hooks, param.getClassLoader()).install(info.sourceDir, info.dataDir);
+        } else if (THEMES.equals(name) && (process == null || process.equals(THEMES))) {
+            new ThemeHooks(hooks, param.getClassLoader(), info.sourceDir, info.dataDir).install();
+        }
+    }
+
+    @Override
+    public void onSystemServerStarting(XposedModuleInterface.SystemServerStartingParam param) {
+        // Scope alone is not consent to enable a feature. Unavailable preferences keep
+        // optional framework hooks off; the log distinguishes this from a missing target.
+        if (!Features.ready()) {
+            hooks.info("system_server: settings unavailable; optional hooks kept off");
+            return;
+        }
+        hooks.info("system_server: settings ready");
+        new CorePatchHooks(hooks, param.getClassLoader()).install();
+        new DisplayPolicyHooks(hooks, param.getClassLoader()).install();
+        if (Features.enabled(Features.FLAG_SECURE)) {
+            new FlagSecureHooks(hooks, param.getClassLoader()).install();
         }
     }
 }

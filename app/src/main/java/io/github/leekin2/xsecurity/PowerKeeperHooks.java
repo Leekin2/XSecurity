@@ -27,27 +27,6 @@ final class PowerKeeperHooks {
                 hooks.error("game refresh rate unavailable; stock behaviour kept", failure);
             }
         }
-        if (Features.enabled(Features.PK_NO_KILL)) {
-            try {
-                noKill();
-                hooks.info("no app killing ready");
-            } catch (Throwable failure) {
-                hooks.error("no app killing unavailable; stock behaviour kept", failure);
-            }
-        }
-    }
-
-    /** Battery and performance stops killing apps it thinks use too much power (as HyperCeiler's DontKillApps). */
-    private void noKill() throws Throwable {
-        Class<?> manager = Class.forName("miui.process.ProcessManager", false, loader);
-        int count = 0;
-        for (Method method : manager.getDeclaredMethods()) {
-            if (method.getName().equals("kill") && method.getReturnType() == boolean.class) {
-                hooks.constant(method, false);
-                count++;
-            }
-        }
-        if (count == 0) throw new NoSuchMethodException("ProcessManager.kill");
     }
 
     /** A game gets at least the refresh rate you chose in Settings. */

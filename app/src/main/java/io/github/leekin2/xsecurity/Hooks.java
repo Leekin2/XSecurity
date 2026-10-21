@@ -23,6 +23,11 @@ final class Hooks {
         install(method, chain -> value);
     }
 
+    /** Forces the method to be interpreted so a hook on it is not skipped by inlining. */
+    void deoptimize(Executable method) {
+        try { module.deoptimize(method); } catch (Throwable ignored) { }
+    }
+
     void info(String message) {
         Log.i(TAG, message);
         module.log(Log.INFO, TAG, message);

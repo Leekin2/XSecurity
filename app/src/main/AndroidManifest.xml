@@ -5,6 +5,7 @@
         <package android:name="com.miui.powerkeeper" />
         <package android:name="com.android.updater" />
         <package android:name="com.xiaomi.joyose" />
+        <package android:name="com.android.thememanager" />
         <package android:name="org.lsposed.manager" />
     </queries>
     <application
