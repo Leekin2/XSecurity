@@ -44,6 +44,7 @@ XSecurity does the same on the **stock** apps with LSPosed hooks. Nothing is rep
 - Video toolbox (theatre mode, Dolby, MEMC, AI picture, new video box) that stays on when the phone warms up
 - Call toolbox: gestures, effects and beauty in video calls
 - Second space and dual apps, car accident detection, car sickness relief, storage defragmentation (FBO)
+- Dark mode: list every installed app under "Individual apps" instead of just a few
 - Optional: shuffled app lock PIN pad
 
 The new optional switches default to off. Framework display/capture and Core Patch changes require **System Framework** scope (`system` in modern libxposed) and a reboot. Scope selection is fixed to the module's eight system/app targets; unrelated apps are hidden. Opening XSecurity requests missing targets and removes obsolete scope entries. A compiled hook is not proof that every ROM implements its target; unavailable targets keep stock behaviour and are logged.
@@ -136,6 +137,7 @@ XSecurity aynısını LSPosed hook'larıyla **orijinal** uygulamalarda yapar. Hi
 - Telefon ısınınca kapanmayan video araç kutusu (sinema modu, Dolby, MEMC, yapay zekâ görüntü, yeni video kutusu)
 - Arama araç kutusu: görüntülü aramada hareketler, efektler ve güzellik
 - İkinci alan ve çift uygulama, kaza algılama, araç tutması rahatlatma, depolama birleştirme (FBO)
+- Karanlık mod: "Tek tek uygulamalar" altında birkaç uygulama yerine yüklü tüm uygulamalar
 - İsteğe bağlı: uygulama kilidinde karışık PIN klavyesi
 
 Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve Core Patch seçenekleri için **System Framework** kapsamı (modern libxposed'da `system`) ve yeniden başlatma gerekir. Kapsam, modülün kullandığı sekiz sistem/uygulama hedefiyle sabittir; ilgisiz uygulamalar gizlenir. XSecurity açıldığında eksik hedefler istenir ve eski kapsam kayıtları kaldırılır. Derlemenin geçmesi her ROM'da çalıştığı anlamına gelmez; bulunamayan hedeflerde özgün davranış korunur ve günlüğe yazılır.

@@ -51,6 +51,7 @@ public final class XSecurityModule extends XposedModule {
         hooks.info("system_server: settings ready");
         new CorePatchHooks(hooks, param.getClassLoader()).install();
         new DisplayPolicyHooks(hooks, param.getClassLoader()).install();
+        new DarkModeHooks(hooks, param.getClassLoader()).install();
         if (Features.enabled(Features.FLAG_SECURE)) {
             new FlagSecureHooks(hooks, param.getClassLoader()).install();
         }

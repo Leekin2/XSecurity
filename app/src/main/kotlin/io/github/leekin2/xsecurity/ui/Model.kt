@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.CarCrash
 import androidx.compose.material.icons.rounded.CellTower
 import androidx.compose.material.icons.rounded.Crop
+import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.DataUsage
 import androidx.compose.material.icons.rounded.DeveloperBoard
 import androidx.compose.material.icons.rounded.GpsFixed
@@ -105,7 +106,8 @@ val SECTIONS = listOf(
         Item(F.FBO, Icons.Rounded.Storage),
         Item(F.SIM_SUCCESS_DIALOG_OFF, Icons.Rounded.SimCard),
         Item(F.ROOT_CHECK_OFF, Icons.Rounded.Security),
-        Item(F.USB_INSTALL_CHECK_OFF, Icons.Rounded.Usb))),
+        Item(F.USB_INSTALL_CHECK_OFF, Icons.Rounded.Usb),
+        Item(F.DARK_MODE_ALL_APPS, Icons.Rounded.DarkMode))),
     Section("theme", Icons.Rounded.Palette, Color(0xFFD6409F), listOf(
         Item(F.THEME_THIRD_PARTY, Icons.Rounded.Palette))),
     Section("corepatch", Icons.Rounded.DeveloperBoard, Color(0xFF997744),

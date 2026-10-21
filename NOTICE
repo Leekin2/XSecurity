@@ -1,0 +1,28 @@
+XSecurity
+Copyright (C) 2025-2026 Leekin2
+
+This program is free software licensed under the GNU Affero General Public
+License v3.0 (see LICENSE).
+
+================================================================================
+Third-party code
+================================================================================
+
+HyperCeiler (https://github.com/ReChronoRain/HyperCeiler)
+    Licensed under the GNU Affero General Public License v3.0.
+    Copyright (C) 2023-2026 HyperCeiler Contributions.
+
+    Some hooks in this module are independent re-implementations of HyperCeiler
+    rules, rewritten against this module's own hook API. The logic and target
+    class/method names were taken from the following HyperCeiler sources:
+
+      - DarkModeHooks.java
+          from rules/systemframework/display/AllDarkMode.kt
+          (itself derived from SetoHook by SetoSkins)
+
+    Further hooks in the developer's own base (Core Patch, Flag Secure, theme,
+    updater and others) are likewise derived from HyperCeiler and its upstreams;
+    see the per-file headers.
+
+miuix (https://github.com/miuix-kotlin-multiplatform/miuix)
+    Used for the HyperOS-style settings UI, under its own license.
