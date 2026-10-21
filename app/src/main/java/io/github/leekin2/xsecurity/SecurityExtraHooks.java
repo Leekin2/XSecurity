@@ -256,25 +256,52 @@ final class SecurityExtraHooks {
         for (java.lang.reflect.Constructor<?> constructor : constructors) {
             hooks.install(constructor, chain -> {
                 Object result = chain.proceed();
-                try {
-                    shuffle((android.widget.LinearLayout) chain.getThisObject());
-                } catch (Throwable failure) {
-                    hooks.error("app lock pad", failure);
+                Object self = chain.getThisObject();
+                // The digit views are usually added after the constructor returns, so shuffling here
+                // finds an empty pad. Defer to the next UI pass, when the children exist.
+                if (self instanceof android.view.View) {
+                    ((android.view.View) self).post(() -> shuffleSafely(self));
                 }
                 return result;
             });
         }
+        // Reshuffle each time the pad is shown (fully laid out by then), so the order differs every unlock.
+        try {
+            Method onAttached = pad.getDeclaredMethod("onAttachedToWindow");
+            hooks.install(onAttached, chain -> {
+                Object result = chain.proceed();
+                shuffleSafely(chain.getThisObject());
+                return result;
+            });
+        } catch (NoSuchMethodException notOverridden) {
+            // The subclass does not override onAttachedToWindow; the constructor's post() covers the first show.
+        }
+    }
+
+    private void shuffleSafely(Object view) {
+        try {
+            if (view instanceof android.widget.LinearLayout) shuffle((android.widget.LinearLayout) view);
+            else hooks.info("app lock pad: not a LinearLayout (" + (view == null ? "null" : view.getClass().getName()) + ")");
+        } catch (Throwable failure) {
+            hooks.error("app lock pad", failure);
+        }
     }
 
     /** Digits 1-9 and 0 change places; the bottom-left and bottom-right keys stay. */
-    private static void shuffle(android.widget.LinearLayout keys) {
-        if (keys.getChildCount() < 4) return;
+    private void shuffle(android.widget.LinearLayout keys) {
+        int rows = keys.getChildCount();
+        if (rows < 4) { hooks.info("app lock pad: rows=" + rows + " (expected >=4); layout differs on this build"); return; }
         List<android.view.View> digits = new ArrayList<>();
         android.view.View bottomLeft = null;
         android.view.View bottomRight = null;
         for (int row = 0; row < 4; row++) {
-            android.view.ViewGroup cols = (android.view.ViewGroup) keys.getChildAt(row);
-            if (cols.getChildCount() < 3) return;
+            android.view.View child = keys.getChildAt(row);
+            if (!(child instanceof android.view.ViewGroup) || ((android.view.ViewGroup) child).getChildCount() < 3) {
+                hooks.info("app lock pad: row " + row + " is " + (child == null ? "null" : child.getClass().getSimpleName())
+                        + "; layout differs on this build");
+                return;
+            }
+            android.view.ViewGroup cols = (android.view.ViewGroup) child;
             for (int col = 0; col < 3; col++) {
                 android.view.View key = cols.getChildAt(col);
                 if (row == 3 && col == 0) bottomLeft = key;
@@ -293,6 +320,7 @@ final class SecurityExtraHooks {
                 else cols.addView(digits.get(next++));
             }
         }
+        hooks.info("app lock pad: shuffled");
     }
 
     /** No low battery pop-up and sound from the Security app. */
