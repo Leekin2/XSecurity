@@ -1017,6 +1017,23 @@ final class SecurityHooks {
         for (Method method : helper.getDeclaredMethods()) {
             if (!Modifier.isAbstract(method.getModifiers())) module.deoptimize(method);
         }
+        // On some ROMs the legacy rank reports each app's power in a far-too-large unit, so the list
+        // shows nonsense ("100015947 mAh") while the percentages (a ratio) stay correct. No phone
+        // battery delivers tens of thousands of mAh to one app, so an impossible value is scaled down
+        // by thousands until it is plausible; every sipper scales by the same factor, so the ratios
+        // and percentages are unchanged. Devices that already report sane values never trigger this.
+        try {
+            Class<?> sipper = Class.forName("miui.securitycenter.powercenter.BatterySipper", false, loader);
+            Method getValue = sipper.getDeclaredMethod("getValue");
+            module.deoptimize(getValue);
+            hooks.install(getValue, chain -> {
+                double value = (double) chain.proceed();
+                while (Math.abs(value) > 50000d) value /= 1000d;
+                return value;
+            });
+        } catch (Throwable unavailable) {
+            hooks.info("battery ranking: power value guard unavailable; stock values kept");
+        }
     }
 
     /** The screen entry shows 0 min of use; fill in the real screen-on time since the last charge. */
