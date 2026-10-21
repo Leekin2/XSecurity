@@ -112,8 +112,20 @@ public final class Features {
             POWER_SAVE_REFRESH, POWER_SAVE_BRIGHTNESS, GAME_KEEP_ENABLED, NET_APP_CONTROLS,
             CP_DOWNGRADE, CP_VERIFY, CP_ARSC, CP_DIGEST, CP_EXACT, CP_PREVIOUS, CP_HIDDEN, CP_SHARED, CP_AGENT, CP_BLOCK);
 
-    /** What the modded Security app did is on by default, as in that mod. */
+    /**
+     * A brand-new install starts with every switch off; the user turns on what they want.
+     * Existing installs keep their choices: {@link #legacyDefault} is frozen into their stored
+     * settings once (see MainActivity), so this change never turns anything off for them.
+     */
     public static boolean defaultValue(String key) {
+        return false;
+    }
+
+    /**
+     * The pre-1.4 default (the modded Security app's features on, HyperCeiler extras off). Written
+     * once into an existing install's settings so an update never resets what they already had.
+     */
+    public static boolean legacyDefault(String key) {
         return !OFF_BY_DEFAULT.contains(key);
     }
 

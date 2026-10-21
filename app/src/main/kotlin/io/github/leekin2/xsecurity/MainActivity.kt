@@ -26,6 +26,10 @@ import java.util.Locale
 import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
+    private companion object {
+        /** Set once the install's defaults have been frozen; keeps updates from resetting choices. */
+        const val MATERIALIZED = "defaults_materialized"
+    }
     private var preferences: SharedPreferences? = null
     private var state by mutableStateOf(UiState())
     private val worker = Executors.newSingleThreadExecutor()
@@ -80,6 +84,7 @@ class MainActivity : ComponentActivity() {
         // The service itself proves the module is enabled; settings may still be unavailable.
         state = state.copy(connected = true)
         if (remote != null) {
+            materializeDefaults(remote)
             // Retired features are removed from both UI and hooks, including stored choices.
             val retired = arrayOf("powerkeeper_no_kill", "autostart_keep_grants", "system_reduce_cleaning",
                 "developer_signature_test", "developer_downgrade_test", "developer_test_packages", "developer_certificate_sha256",
@@ -91,6 +96,24 @@ class MainActivity : ComponentActivity() {
             state = state.copy(values = values)
         }
         requestMissingScope(service)
+    }
+
+    /**
+     * One time per install, freeze the effective settings so later default changes never reset
+     * them. A new install starts with everything off; an install that has run before keeps its
+     * pre-1.4 defaults (and any switch it already stored). Runs before settings are read, so the
+     * stored values win from here on. Keys the user has already set are left untouched.
+     */
+    private fun materializeDefaults(remote: SharedPreferences) {
+        if (remote.getBoolean(MATERIALIZED, false)) return
+        // An install that has run before has stored switches, or chose a language/look.
+        val hadRun = Features.ALL.any { remote.contains(it) || local.contains(it) } ||
+            ui.all.isNotEmpty()
+        val editor = remote.edit()
+        for (key in Features.ALL) {
+            if (!remote.contains(key)) editor.putBoolean(key, if (hadRun) Features.legacyDefault(key) else false)
+        }
+        editor.putBoolean(MATERIALIZED, true).apply()
     }
 
     /** Keep the fixed module targets selected; remove obsolete or unrelated scope entries. */
