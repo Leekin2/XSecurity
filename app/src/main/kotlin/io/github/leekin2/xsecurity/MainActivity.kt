@@ -3,6 +3,7 @@ package io.github.leekin2.xsecurity
 import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -51,10 +52,11 @@ class MainActivity : ComponentActivity() {
         state = state.copy(
             values = Features.ALL.associateWith { local.getBoolean(it, Features.defaultValue(it)) },
             language = language,
-            look = Look(ui.getBoolean("hyper", true), ui.getInt("theme", 0), ui.getBoolean("monet", false), ui.getBoolean("blur", false))
+            look = Look(ui.getBoolean("hyper", true), ui.getInt("theme", 0), ui.getBoolean("monet", false), ui.getBoolean("blur", false)),
+            iconHidden = iconHidden()
         )
         val actions = Actions(::change, ::restartApps, ::changeLanguage, ::changeLook,
-            { state = state.copy(settingsOpen = it) }, ::openLsposed)
+            { state = state.copy(settingsOpen = it) }, ::openLsposed, ::setIconHidden)
         setContent {
             XTheme(state.look) {
                 if (state.look.hyper) MiuixScreen(state, actions) else MaterialScreen(state, actions)
@@ -146,6 +148,22 @@ class MainActivity : ComponentActivity() {
         runCatching { startActivity(module) }
             .recoverCatching { startActivity(packageManager.getLaunchIntentForPackage("org.lsposed.manager")!!) }
             .onFailure { Toast.makeText(this, texts.notConnected, Toast.LENGTH_SHORT).show() }
+    }
+
+    // The alias class is under the code namespace, which differs from the application id.
+    private val launcherAlias get() = ComponentName(this, "${javaClass.`package`!!.name}.Launcher")
+
+    private fun iconHidden() = packageManager.getComponentEnabledSetting(launcherAlias) ==
+        PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+
+    /** Hides or shows the home screen icon; the app still opens from LSPosed when hidden. */
+    private fun setIconHidden(hidden: Boolean) {
+        runCatching {
+            packageManager.setComponentEnabledSetting(launcherAlias,
+                if (hidden) PackageManager.COMPONENT_ENABLED_STATE_DISABLED else PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP)
+            state = state.copy(iconHidden = hidden)
+        }.onFailure { Toast.makeText(this, texts.notConnected, Toast.LENGTH_SHORT).show() }
     }
 
     /** Changes apply when the scope apps start again; this needs root. */

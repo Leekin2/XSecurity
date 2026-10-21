@@ -62,6 +62,7 @@ The new optional switches default to off. Framework display/capture and Core Pat
 ### 🎨 App
 - HyperOS (Miuix) or Material You look, light / dark / system theme, wallpaper colors, blurred top bar
 - English, Türkçe, Русский, Español, 简体中文
+- Hide the home screen icon; once hidden, open the app from LSPosed
 
 ## Screenshots
 | Home | Games | Charging |
@@ -153,6 +154,7 @@ Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve Core
 #### 🎨 Uygulama
 - HyperOS (Miuix) veya Material You görünümü, açık / koyu / sistem teması, duvar kâğıdı renkleri, bulanık üst çubuk
 - English, Türkçe, Русский, Español, 简体中文
+- Ana ekran simgesini gizle; gizlendikten sonra uygulamayı LSPosed'den açın
 
 ### Gereksinimler
 - HyperOS 4 Çin ROM'lu (Android 17) bir Xiaomi telefon

@@ -126,6 +126,8 @@ data class UiState(
     val look: Look = Look(),
     val settingsOpen: Boolean = false,
     val restarting: Boolean = false,
+    /** Whether the home screen launcher icon is currently hidden. */
+    val iconHidden: Boolean = false,
 )
 
 /** Everything the screens can ask for. */
@@ -136,4 +138,6 @@ class Actions(
     val onLook: (Look) -> Unit,
     val onSettings: (Boolean) -> Unit,
     val onLsposed: () -> Unit,
+    /** Hides or shows the home screen launcher icon. */
+    val onHideIcon: (Boolean) -> Unit,
 )

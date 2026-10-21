@@ -37,6 +37,7 @@ import androidx.compose.material.icons.rounded.HighlightOff
 import androidx.compose.material.icons.rounded.HourglassTop
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Palette
@@ -86,6 +87,7 @@ import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
+import top.yukonga.miuix.kmp.window.WindowDialog
 import top.yukonga.miuix.kmp.window.WindowListPopup
 
 @Composable
@@ -238,11 +240,28 @@ private fun SettingsPage(state: UiState, t: Texts, actions: Actions) {
             title = t.blur, summary = t.blurSummary, startAction = { RowIcon(Icons.Rounded.BlurOn, null) })
     }
     SmallTitle(t.groupApp, Modifier.padding(top = 6.dp))
+    var confirmHide by remember { mutableStateOf(false) }
     Card(Modifier.padding(horizontal = 12.dp).padding(bottom = 6.dp)) {
         ArrowPreference(title = t.openLsposed, summary = t.openLsposedSummary,
             startAction = { RowIcon(Icons.Rounded.OpenInNew, null) }, onClick = actions.onLsposed)
+        // Enabling asks first; disabling takes effect at once.
+        SwitchPreference(checked = state.iconHidden,
+            onCheckedChange = { if (it) confirmHide = true else actions.onHideIcon(false) },
+            title = t.hideIcon, summary = t.hideIconSummary, startAction = { RowIcon(Icons.Rounded.VisibilityOff, null) })
         ArrowPreference(title = t.about, summary = t.aboutSummary(BuildConfig.VERSION_NAME),
             startAction = { RowIcon(Icons.Rounded.Info, null) }, onClick = {})
+    }
+    WindowDialog(show = confirmHide, title = t.hideIconTitle, onDismissRequest = { confirmHide = false }) {
+        Column {
+            Text(t.hideIconMessage, Modifier.fillMaxWidth(), color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+            Spacer(Modifier.height(24.dp))
+            Row {
+                TextButton(t.cancel, { confirmHide = false }, Modifier.weight(1f))
+                Spacer(Modifier.size(16.dp))
+                TextButton(t.hide, { confirmHide = false; actions.onHideIcon(true) }, Modifier.weight(1f),
+                    colors = ButtonDefaults.textButtonColorsPrimary())
+            }
+        }
     }
 }
 

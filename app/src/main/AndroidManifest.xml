@@ -20,10 +20,17 @@
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="de.robv.android.xposed.category.MODULE_SETTINGS" />
             </intent-filter>
         </activity>
+        <!-- The home screen icon is this alias; "Hide home screen icon" disables it, LSPosed still opens the app. -->
+        <activity-alias android:name=".Launcher" android:targetActivity=".MainActivity"
+            android:exported="true" android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
         <!-- LSPosed hands the module its service here: settings and scope requests. -->
         <provider android:name="io.github.libxposed.service.XposedProvider"
             android:authorities="io.github.leekin2.xsecurity.XposedService" android:exported="true" />

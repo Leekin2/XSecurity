@@ -37,10 +37,13 @@ import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
@@ -208,6 +211,17 @@ private fun SettingsPage(state: UiState, t: Texts, actions: Actions) {
         ListItem(headlineContent = { Text(t.openLsposed) }, supportingContent = { Text(t.openLsposedSummary) },
             leadingContent = { Icon(Icons.Rounded.OpenInNew, null) }, colors = ListItemDefaults.colors(containerColor = Color.Transparent),
             modifier = Modifier.clickable(onClick = actions.onLsposed))
+        // Enabling asks first; disabling takes effect at once.
+        var confirmHide by remember { mutableStateOf(false) }
+        SwitchRow(Icons.Rounded.VisibilityOff, t.hideIcon, t.hideIconSummary, state.iconHidden) {
+            if (it) confirmHide = true else actions.onHideIcon(false)
+        }
+        if (confirmHide) {
+            AlertDialog(onDismissRequest = { confirmHide = false },
+                title = { Text(t.hideIconTitle) }, text = { Text(t.hideIconMessage) },
+                confirmButton = { TextButton(onClick = { confirmHide = false; actions.onHideIcon(true) }) { Text(t.hide) } },
+                dismissButton = { TextButton(onClick = { confirmHide = false }) { Text(t.cancel) } })
+        }
         ListItem(headlineContent = { Text(t.about) }, supportingContent = { Text(t.aboutSummary(BuildConfig.VERSION_NAME)) },
             leadingContent = { Icon(Icons.Rounded.Info, null) }, colors = ListItemDefaults.colors(containerColor = Color.Transparent))
     }

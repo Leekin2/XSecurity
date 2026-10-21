@@ -38,6 +38,9 @@ class Texts(
     val monet: String, val monetSummary: String, val blur: String, val blurSummary: String,
     val groupApp: String, val openLsposed: String, val openLsposedSummary: String,
     val about: String, val aboutSummary: (String) -> String,
+    val hideIcon: String, val hideIconSummary: String,
+    val hideIconTitle: String, val hideIconMessage: String,
+    val hide: String, val cancel: String,
 )
 
 private val TR = Texts(
@@ -111,6 +114,10 @@ private val TR = Texts(
     blur = "Bulanık üst çubuk", blurSummary = "Üst çubuk buzlu cam gibi görünür",
     groupApp = "Uygulama", openLsposed = "LSPosed'ı aç", openLsposedSummary = "Modülü ve kapsamı LSPosed'da yönetin",
     about = "Hakkında", aboutSummary = { "XSecurity $it" },
+    hideIcon = "Ana ekran simgesini gizle", hideIconSummary = "Gizlendikten sonra LSPosed'den açılabilir",
+    hideIconTitle = "Ana ekran simgesi gizlensin mi?",
+    hideIconMessage = "Gizlendikten sonra uygulamayı LSPosed'deki XSecurity modül ayarlarından açabilirsiniz.",
+    hide = "Gizle", cancel = "Vazgeç",
 )
 
 private val EN = Texts(
@@ -184,6 +191,10 @@ private val EN = Texts(
     blur = "Blurred top bar", blurSummary = "The top bar looks like frosted glass",
     groupApp = "App", openLsposed = "Open LSPosed", openLsposedSummary = "Manage the module and its scope in LSPosed",
     about = "About", aboutSummary = { "XSecurity $it" },
+    hideIcon = "Hide home screen icon", hideIconSummary = "Once hidden, open it from LSPosed",
+    hideIconTitle = "Hide the home screen icon?",
+    hideIconMessage = "Once hidden, you can still open the app from XSecurity's module settings in LSPosed.",
+    hide = "Hide", cancel = "Cancel",
 )
 
 private val RU = Texts(
@@ -257,6 +268,10 @@ private val RU = Texts(
     blur = "Размытая верхняя панель", blurSummary = "Верхняя панель как матовое стекло",
     groupApp = "Приложение", openLsposed = "Открыть LSPosed", openLsposedSummary = "Управление модулем и областью в LSPosed",
     about = "О приложении", aboutSummary = { "XSecurity $it" },
+    hideIcon = "Скрыть значок на рабочем столе", hideIconSummary = "После скрытия откройте его из LSPosed",
+    hideIconTitle = "Скрыть значок на рабочем столе?",
+    hideIconMessage = "После скрытия приложение можно открыть из настроек модуля XSecurity в LSPosed.",
+    hide = "Скрыть", cancel = "Отмена",
 )
 
 private val ES = Texts(
@@ -330,6 +345,10 @@ private val ES = Texts(
     blur = "Barra superior difuminada", blurSummary = "La barra superior parece vidrio esmerilado",
     groupApp = "App", openLsposed = "Abrir LSPosed", openLsposedSummary = "Gestiona el módulo y su ámbito en LSPosed",
     about = "Acerca de", aboutSummary = { "XSecurity $it" },
+    hideIcon = "Ocultar icono de inicio", hideIconSummary = "Una vez oculto, ábrelo desde LSPosed",
+    hideIconTitle = "¿Ocultar el icono de inicio?",
+    hideIconMessage = "Una vez oculto, aún puedes abrir la app desde los ajustes del módulo XSecurity en LSPosed.",
+    hide = "Ocultar", cancel = "Cancelar",
 )
 
 private val ZH = Texts(
@@ -403,6 +422,10 @@ private val ZH = Texts(
     blur = "模糊顶栏", blurSummary = "顶栏呈现毛玻璃效果",
     groupApp = "应用", openLsposed = "打开 LSPosed", openLsposedSummary = "在 LSPosed 中管理模块和作用域",
     about = "关于", aboutSummary = { "XSecurity $it" },
+    hideIcon = "隐藏主屏幕图标", hideIconSummary = "隐藏后可从 LSPosed 打开",
+    hideIconTitle = "隐藏主屏幕图标？",
+    hideIconMessage = "隐藏后，仍可从 LSPosed 的 XSecurity 模块设置中打开应用。",
+    hide = "隐藏", cancel = "取消",
 )
 
 fun textsFor(language: AppLanguage) = when (language) {
