@@ -21,8 +21,16 @@ HyperCeiler (https://github.com/ReChronoRain/HyperCeiler)
           (itself derived from SetoHook by SetoSkins)
       - AppStoreHooks.java
           from rules/systemframework/others/BypassForceMiAppStore.java
-      - GalleryHooks.java
-          from rules/gallery/ChangeBackupServer.java
+      - ClipboardHooks.java
+          from rules/systemframework/others/ClipboardWhitelist.java
+      - GuardHooks.java
+          from rules/guardprovider/DisableUploadAppListNew.java
+      - PersistentUpdateHooks.java
+          target names and install scoping from
+          rules/systemframework/corepatch/DisablePersistent.java
+          (adapted to libxposed 102 with per-thread, nested scopes)
+      - SecurityExtraHooks.java (additional app details and Play Store action)
+          from rules/securitycenter/app/AppDetails.java
 
     Further hooks in the developer's own base (Core Patch, Flag Secure, theme,
     updater and others) are likewise derived from HyperCeiler and its upstreams;

@@ -57,10 +57,11 @@ class MainActivity : ComponentActivity() {
             values = Features.ALL.associateWith { local.getBoolean(it, Features.defaultValue(it)) },
             language = language,
             look = Look(ui.getBoolean("hyper", true), ui.getInt("theme", 0), ui.getBoolean("monet", false), ui.getBoolean("blur", false)),
-            iconHidden = iconHidden()
+            iconHidden = iconHidden(),
+            clipboardApps = local.getStringSet(Features.CLIPBOARD_APPS, emptySet())?.size ?: 0
         )
         val actions = Actions(::change, ::restartApps, ::changeLanguage, ::changeLook,
-            { state = state.copy(settingsOpen = it) }, ::openLsposed, ::setIconHidden)
+            { state = state.copy(settingsOpen = it) }, ::openLsposed, ::setIconHidden, ::pickClipboardApps)
         setContent {
             XTheme(state.look) {
                 if (state.look.hyper) MiuixScreen(state, actions) else MaterialScreen(state, actions)
@@ -88,7 +89,7 @@ class MainActivity : ComponentActivity() {
             // Retired features are removed from both UI and hooks, including stored choices.
             val retired = arrayOf("powerkeeper_no_kill", "autostart_keep_grants", "system_reduce_cleaning",
                 "developer_signature_test", "developer_downgrade_test", "developer_test_packages", "developer_certificate_sha256",
-                "ims_icon_support", "ims_restart_pending")
+                "ims_icon_support", "ims_restart_pending", "gallery_google_backup")
             remote.edit().apply { retired.forEach { remove(it) } }.apply()
             local.edit().apply { retired.forEach { remove(it) } }.apply()
             val values = Features.ALL.associateWith { remote.getBoolean(it, Features.defaultValue(it)) }
@@ -121,7 +122,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             val scope = service.scope.toSet()
             val supported = setOf("system", "com.miui.securitycenter", "com.miui.powerkeeper",
-                "com.android.updater", "com.xiaomi.joyose", "com.android.thememanager", "com.miui.gallery")
+                "com.android.updater", "com.xiaomi.joyose", "com.android.thememanager", "com.miui.guardprovider")
             val obsolete = scope - supported
             if (obsolete.isNotEmpty()) service.removeScope(obsolete.toList())
             val missing = supported.filter { it !in scope }
@@ -149,6 +150,37 @@ class MainActivity : ComponentActivity() {
             Toast.makeText(this, io.github.leekin2.xsecurity.ui.frameworkRestartHint(state.language), Toast.LENGTH_LONG).show()
         }
         if (value) XSecurityApp.current()?.let(::requestMissingScope)
+    }
+
+    /** Lets the user pick which apps may read the clipboard in the background. */
+    private fun pickClipboardApps() {
+        val remote = preferences
+        if (remote == null) {
+            Toast.makeText(this, texts.notConnected, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val launcher = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        val apps = packageManager.queryIntentActivities(launcher, 0)
+            .map { it.activityInfo.packageName to it.loadLabel(packageManager).toString() }
+            .filter { it.first != packageName }
+            .distinctBy { it.first }
+            .sortedBy { it.second.lowercase() }
+        val chosen = (remote.getStringSet(Features.CLIPBOARD_APPS, null) ?: emptySet()).toMutableSet()
+        val labels = apps.map { "${it.second}\n${it.first}" }.toTypedArray()
+        val checked = BooleanArray(apps.size) { apps[it].first in chosen }
+        val pick = texts.features[io.github.leekin2.xsecurity.ui.PICK_CLIPBOARD]
+        android.app.AlertDialog.Builder(this)
+            .setTitle(pick?.title)
+            .setMultiChoiceItems(labels, checked) { _, index, on ->
+                if (on) chosen.add(apps[index].first) else chosen.remove(apps[index].first)
+            }
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                remote.edit().putStringSet(Features.CLIPBOARD_APPS, chosen.toSet()).apply()
+                local.edit().putStringSet(Features.CLIPBOARD_APPS, chosen.toSet()).apply()
+                state = state.copy(clipboardApps = chosen.size)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun changeLanguage(language: AppLanguage) {
@@ -197,7 +229,7 @@ class MainActivity : ComponentActivity() {
             // Root is proven by "id -u" printing 0; a process that is already gone is not a failure.
             // Processes are found by exact name: "pkill -f" would also match (and kill) this shell.
             val names = "com.miui.securitycenter com.miui.securitycenter.remote com.miui.securitycenter.power " +
-                "com.miui.securitycenter:ui com.miui.securitycenter.bootaware com.miui.powerkeeper com.xiaomi.joyose com.android.updater com.android.thememanager com.miui.gallery"
+                "com.miui.securitycenter:ui com.miui.securitycenter.bootaware com.miui.powerkeeper com.xiaomi.joyose com.android.updater com.android.thememanager com.miui.guardprovider"
             val ok = runCatching {
                 val process = ProcessBuilder("su", "-c",
                     "id -u; am force-stop com.miui.securitycenter; am force-stop com.android.updater; " +

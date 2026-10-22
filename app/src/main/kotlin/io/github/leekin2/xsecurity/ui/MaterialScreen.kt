@@ -52,6 +52,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
+import io.github.leekin2.xsecurity.Features as F
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -188,6 +189,16 @@ private fun SectionCard(section: Section, state: UiState, t: Texts, actions: Act
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier.clickable(enabled = state.connected != false) { actions.onChange(item.key, !checked) }
                     )
+                    if (item.key == F.CLIPBOARD_WHITELIST && checked) {
+                        val pick = t.features[PICK_CLIPBOARD]
+                        ListItem(
+                            headlineContent = { Text((pick?.title ?: "") + " (${state.clipboardApps})") },
+                            supportingContent = pick?.summary?.let { { Text(it) } },
+                            leadingContent = { Icon(item.icon, null, tint = section.color) },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            modifier = Modifier.clickable(enabled = state.connected != false) { actions.onPickClipboardApps() }
+                        )
+                    }
                 }
             }
         }

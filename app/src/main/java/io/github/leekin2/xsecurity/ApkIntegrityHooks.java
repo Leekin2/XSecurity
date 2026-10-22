@@ -50,7 +50,6 @@ final class ApkIntegrityHooks {
         Method isError = parseResult.getMethod("isError");
         Method getCode = parseResult.getMethod("getErrorCode");
         Class<?> parseInput = loader.loadClass("android.content.pm.parsing.result.ParseInput");
-        Method reset = parseInput.getMethod("reset");
         Method success = parseInput.getMethod("success", Object.class);
         Class<?> signature = loader.loadClass("android.content.pm.Signature");
         Constructor<?> signatureFromBytes = signature.getConstructor(byte[].class);
@@ -80,6 +79,10 @@ final class ApkIntegrityHooks {
                 Object signing = detailsConstructor.newInstance(signatures, 1);
                 Object result = withDigestsConstructor.newInstance(signing, null);
                 Object input = chain.getArg(0);
+                // reset belongs to the concrete parser, not the ParseInput interface.
+                // Resolve the actual implementation for ROMs with different parser types.
+                Method reset = input.getClass().getMethod("reset");
+                reset.setAccessible(true);
                 reset.invoke(input);
                 return success.invoke(input, result);
             } catch (ReflectiveOperationException | java.io.IOException | java.security.cert.CertificateException unsupported) {

@@ -58,15 +58,18 @@ public final class Features {
     public static final String SIM_SUCCESS_DIALOG_OFF = "sim_success_dialog_off";
     public static final String ROOT_CHECK_OFF = "root_check_off";
     public static final String USB_INSTALL_CHECK_OFF = "usb_install_check_off";
+    // Clipboard (system_server) and Security's app-list upload
+    public static final String CLIPBOARD_WHITELIST = "clipboard_whitelist";
+    public static final String CLIPBOARD_APPS = "clipboard_whitelist_apps";
+    public static final String APPLIST_UPLOAD_OFF = "applist_upload_off";
     // Display
     public static final String DARK_MODE_ALL_APPS = "dark_mode_all_apps";
     // App store redirects
     public static final String STORE_FORCE_CHOOSER = "store_force_chooser";
     public static final String STORE_GETAPPS_MINI = "store_getapps_detailmini";
-    // Gallery
-    public static final String GALLERY_GOOGLE_BACKUP = "gallery_google_backup";
     // Themes
     public static final String THEME_THIRD_PARTY = "theme_third_party";
+    public static final String THEME_FIX_RESET = "theme_fix_reset";
     // Optional package-manager behaviour (Core Patch feature names).
     public static final String CP_DOWNGRADE = "corepatch_downgrade";
     public static final String CP_VERIFY = "corepatch_verification";
@@ -78,8 +81,9 @@ public final class Features {
     public static final String CP_SHARED = "corepatch_shared_uid";
     public static final String CP_AGENT = "corepatch_verification_agent";
     public static final String CP_BLOCK = "corepatch_vendor_block";
+    public static final String CP_PERSISTENT = "corepatch_persistent_updates";
     public static final String[] CORE_PATCH = {CP_DOWNGRADE, CP_VERIFY, CP_ARSC, CP_DIGEST, CP_EXACT,
-            CP_PREVIOUS, CP_HIDDEN, CP_SHARED, CP_AGENT, CP_BLOCK};
+            CP_PREVIOUS, CP_HIDDEN, CP_SHARED, CP_AGENT, CP_BLOCK, CP_PERSISTENT};
     // System updater
     public static final String UPDATER_OTA_VALIDATE = "updater_ota_validate_off";
     public static final String UPDATER_NO_AUTO_DIALOG = "updater_no_auto_dialog";
@@ -93,9 +97,10 @@ public final class Features {
             VIDEO_TOOLBOX, CALL_TOOLBOX,
             FLAG_SECURE, PERM_NO_WAIT, SECOND_SPACE, WARNINGS, FBO, TOOLBOX, DATA_USAGE, APP_INFO, DOCK, CAR_SICKNESS, APPLOCK_SCRAMBLE, LOW_BATTERY_QUIET,
             SIM_SUCCESS_DIALOG_OFF, ROOT_CHECK_OFF, USB_INSTALL_CHECK_OFF,
-            DARK_MODE_ALL_APPS, STORE_FORCE_CHOOSER, STORE_GETAPPS_MINI, GALLERY_GOOGLE_BACKUP,
-            THEME_THIRD_PARTY,
-            CP_DOWNGRADE, CP_VERIFY, CP_ARSC, CP_DIGEST, CP_EXACT, CP_PREVIOUS, CP_HIDDEN, CP_SHARED, CP_AGENT, CP_BLOCK,
+            DARK_MODE_ALL_APPS, STORE_FORCE_CHOOSER, STORE_GETAPPS_MINI,
+            CLIPBOARD_WHITELIST, APPLIST_UPLOAD_OFF,
+            THEME_THIRD_PARTY, THEME_FIX_RESET,
+            CP_DOWNGRADE, CP_VERIFY, CP_ARSC, CP_DIGEST, CP_EXACT, CP_PREVIOUS, CP_HIDDEN, CP_SHARED, CP_AGENT, CP_BLOCK, CP_PERSISTENT,
             UPDATER_OTA_VALIDATE, UPDATER_NO_AUTO_DIALOG
     };
 
@@ -108,9 +113,10 @@ public final class Features {
             APPLOCK_SCRAMBLE, LOW_BATTERY_QUIET, GAME_TOAST_OFF, GAME_MACRO, GAME_NETWORK,
             NET_QUOTA_KEEP, NET_HOTSPOT_KEEP, SMART_CHARGE, SUPER_WIRELESS, CAR_SICKNESS,
             SIM_SUCCESS_DIALOG_OFF, ROOT_CHECK_OFF, USB_INSTALL_CHECK_OFF, DARK_MODE_ALL_APPS,
-            STORE_FORCE_CHOOSER, STORE_GETAPPS_MINI, GALLERY_GOOGLE_BACKUP, THEME_THIRD_PARTY, FLAG_SECURE,
+            STORE_FORCE_CHOOSER, STORE_GETAPPS_MINI, THEME_THIRD_PARTY, THEME_FIX_RESET, FLAG_SECURE,
+            CLIPBOARD_WHITELIST, APPLIST_UPLOAD_OFF,
             POWER_SAVE_REFRESH, POWER_SAVE_BRIGHTNESS, GAME_KEEP_ENABLED, NET_APP_CONTROLS,
-            CP_DOWNGRADE, CP_VERIFY, CP_ARSC, CP_DIGEST, CP_EXACT, CP_PREVIOUS, CP_HIDDEN, CP_SHARED, CP_AGENT, CP_BLOCK);
+            CP_DOWNGRADE, CP_VERIFY, CP_ARSC, CP_DIGEST, CP_EXACT, CP_PREVIOUS, CP_HIDDEN, CP_SHARED, CP_AGENT, CP_BLOCK, CP_PERSISTENT);
 
     /**
      * A brand-new install starts with every switch off; the user turns on what they want.
@@ -136,6 +142,13 @@ public final class Features {
     static boolean enabled(String key) {
         SharedPreferences p = preferences;
         return p == null ? defaultValue(key) : p.getBoolean(key, defaultValue(key));
+    }
+
+    /** A stored list of package names (empty when unset or settings are unavailable). */
+    static Set<String> stringSet(String key) {
+        SharedPreferences p = preferences;
+        Set<String> value = p == null ? null : p.getStringSet(key, null);
+        return value == null ? Set.of() : value;
     }
 
     /** True once the remote settings are attached; false when they could not be read (e.g. early system_server). */

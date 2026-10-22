@@ -53,6 +53,12 @@ final class AppStoreHooks {
         Uri data = intent.getData();
         if (data == null) return intent;
 
+        // An explicit Play Store action (including the app-details row) is already a user choice.
+        // Keep its package and URI instead of applying GetApps paths or the store chooser.
+        if ("com.android.vending".equals(intent.getPackage())
+                || (intent.getComponent() != null
+                && "com.android.vending".equals(intent.getComponent().getPackageName()))) return intent;
+
         Uri rewritten = data;
         String type = intent.getType();
         // GetApps uses the mimarket scheme; normalise it so the match below works.

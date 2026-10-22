@@ -64,6 +64,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.leekin2.xsecurity.BuildConfig
+import io.github.leekin2.xsecurity.Features as F
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
@@ -207,6 +208,12 @@ private fun SectionCard(section: Section, state: UiState, t: Texts, actions: Act
                         startAction = { RowIcon(item.icon, section.color) },
                         enabled = state.connected != false
                     )
+                    if (item.key == F.CLIPBOARD_WHITELIST && state.values[item.key] == true) {
+                        val pick = t.features[PICK_CLIPBOARD]
+                        ArrowPreference(title = (pick?.title ?: "") + " (${state.clipboardApps})", summary = pick?.summary,
+                            startAction = { RowIcon(item.icon, section.color) },
+                            onClick = actions.onPickClipboardApps, enabled = state.connected != false)
+                    }
                 }
             }
         }

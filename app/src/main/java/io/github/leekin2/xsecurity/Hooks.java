@@ -28,6 +28,16 @@ final class Hooks {
         try { module.deoptimize(method); } catch (Throwable ignored) { }
     }
 
+    /** Reports whether ART accepted deoptimization; hook registration alone does not prove this. */
+    void deoptimizeReported(Executable method) {
+        try {
+            boolean accepted = module.deoptimize(method);
+            info("Deoptimization accepted=" + accepted + ": " + method.toGenericString());
+        } catch (Throwable failure) {
+            error("Deoptimization unavailable: " + method.toGenericString(), failure);
+        }
+    }
+
     void info(String message) {
         Log.i(TAG, message);
         module.log(Log.INFO, TAG, message);

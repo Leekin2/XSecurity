@@ -21,6 +21,8 @@ final class CorePatchHooks {
     CorePatchHooks(Hooks hooks, ClassLoader loader) { this.hooks = hooks; this.loader = loader; }
 
     void install() {
+        if (Features.enabled(Features.CP_PERSISTENT)) step("persistent app updates", () ->
+                new PersistentUpdateHooks(hooks, loader).install());
         if (Features.enabled(Features.CP_VERIFY) || Features.enabled(Features.CP_PREVIOUS)) new ApkIntegrityHooks(hooks, loader).install();
         if (Features.enabled(Features.CP_DOWNGRADE)) step("downgrade", () ->
                 constant("com.android.server.pm.PackageManagerServiceUtils", "checkDowngrade", void.class, null));

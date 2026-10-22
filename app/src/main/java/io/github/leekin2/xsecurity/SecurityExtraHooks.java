@@ -336,7 +336,9 @@ final class SecurityExtraHooks {
 
     /**
      * App info's "App info" page gets more rows, as in HyperCeiler: version code, UID, data folder,
-     * APK file, minimum and target SDK. Tapping a row copies its value.
+     * APK file, minimum and target SDK, then Open in Play Store. Metadata rows copy their values.
+     * Play Store placement follows HyperCeiler's securitycenter/app/AppDetails (AGPL-3.0;
+     * Copyright 2023-2026 HyperCeiler Contributions); see NOTICE.
      */
     void moreAppDetails() throws Throwable {
         Class<?> fragment = Class.forName("com.miui.appmanager.fragment.AMAppInformationFragment", false, loader);
@@ -391,6 +393,7 @@ final class SecurityExtraHooks {
                             {"xsecurity_apk", tr ? "APK dosyası" : "APK file", app.sourceDir},
                             {"xsecurity_min_sdk", tr ? "En düşük SDK" : "Minimum SDK", String.valueOf(app.minSdkVersion)},
                             {"xsecurity_target_sdk", tr ? "Hedef SDK" : "Target SDK", String.valueOf(app.targetSdkVersion)},
+                            {"xsecurity_play_store", tr ? "Play Store’da aç" : "Open in Play Store", ""},
                     };
                     for (String[] row : rows) {
                         Object item = newText.newInstance(ctx);
@@ -405,8 +408,12 @@ final class SecurityExtraHooks {
                                 case "equals":
                                     return proxy == args[0];
                                 case "toString":
-                                    return "xsecurity_copy";
+                                    return "xsecurity_play_store".equals(row[0]) ? "xsecurity_play_store" : "xsecurity_copy";
                                 default:
+                                    if ("xsecurity_play_store".equals(row[0])) {
+                                        openPlayStore(ctx, pkg.packageName, tr);
+                                        return true;
+                                    }
                                     android.content.ClipboardManager clip = (android.content.ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
                                     clip.setPrimaryClip(android.content.ClipData.newPlainText(row[1], row[2]));
                                     android.widget.Toast.makeText(ctx, tr ? "Kopyalandı" : "Copied", android.widget.Toast.LENGTH_SHORT).show();
@@ -422,5 +429,28 @@ final class SecurityExtraHooks {
             });
             return result;
         });
+    }
+
+    private void openPlayStore(Context context, String packageName, boolean tr) {
+        try {
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                    android.net.Uri.parse("market://details?id=" + packageName))
+                    .setPackage("com.android.vending")
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            return;
+        } catch (android.content.ActivityNotFoundException | SecurityException unavailable) {
+            // No usable Play Store app: open the same listing on the Play website.
+        }
+        try {
+            context.startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                    android.net.Uri.parse("https://play.google.com/store/apps/details?id=" + packageName))
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));
+        } catch (android.content.ActivityNotFoundException | SecurityException unavailable) {
+            hooks.error("Play Store listing unavailable", unavailable);
+            android.widget.Toast.makeText(context,
+                    tr ? "Play Store veya bağlantıyı açabilecek bir uygulama bulunamadı" : "No app can open the Play Store listing",
+                    android.widget.Toast.LENGTH_LONG).show();
+        }
     }
 }

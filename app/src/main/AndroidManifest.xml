@@ -6,8 +6,13 @@
         <package android:name="com.android.updater" />
         <package android:name="com.xiaomi.joyose" />
         <package android:name="com.android.thememanager" />
-        <package android:name="com.miui.gallery" />
         <package android:name="org.lsposed.manager" />
+        <package android:name="com.miui.guardprovider" />
+        <!-- Lets the clipboard app picker list launchable apps without a broad package permission. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
     </queries>
     <application
         android:name=".XSecurityApp"

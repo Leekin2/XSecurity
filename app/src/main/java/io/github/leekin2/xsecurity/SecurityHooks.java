@@ -82,7 +82,7 @@ final class SecurityHooks {
             if (Features.enabled(Features.GT_DYNAMIC_PERF)) run("dynamic performance", () -> alwaysTrue(targets, "gt_dynperf", "persist.sys.smartop.support_dynamic_performance"));
             if (Features.enabled(Features.GT_TOUCH)) run("game touch", () -> alwaysTrue(targets, "gt_touch", "support_touchfeature_gamemode"));
             if (Features.enabled(Features.GT_MI_TIME)) run("game Mi time", () -> alwaysTrue(targets, "gt_mitime", "support_game_mi_time"));
-            if (in(here, MAIN) && Features.enabled(Features.APP_INFO)) run("open by default", () -> openByDefault(targets));
+            if (in(here, MAIN) && Features.enabled(Features.APP_INFO)) run("hide duplicate default row", () -> hideDuplicateDefaultRow(targets));
             if (in(here, MAIN | REMOTE) && Features.enabled(Features.ROOT_CHECK_OFF)) run("root check off", () -> alwaysFalse(targets, "root_check", "key_check_item_root"));
             if (in(here, MAIN | REMOTE) && Features.enabled(Features.USB_INSTALL_CHECK_OFF)) run("USB install check off", () -> alwaysFalse(targets, "usb_install_check", "permcenter_install_intercept_enabled"));
             if (in(here, MAIN) && Features.enabled(Features.SECOND_SPACE)) run("second space", () -> secondSpace(targets));
@@ -619,7 +619,7 @@ final class SecurityHooks {
                     p.moveTo(12.5f, 10.5f); p.lineTo(15, 13); p.lineTo(12.5f, 15.5f);
                     break;
                 default:
-                    // link, as in the modded app: two open half-links facing each other and a bar
+                    // The original XSecurity chain icon: two open links joined by a bar.
                     p.moveTo(10, 7); p.lineTo(7, 7);
                     p.arcTo(new android.graphics.RectF(2, 7, 12, 17), 270, -180, false);
                     p.lineTo(10, 17);
@@ -1221,18 +1221,18 @@ final class SecurityHooks {
 
     // --- Game Turbo ---------------------------------------------------------------------------
 
-    /**
-     * App info: the "Clear defaults" row becomes "Open by default" (as in HyperCeiler / MIUIQOL): it
-     * shows whether the app opens its supported links and leads to the system page for it.
-     */
-    private void openByDefault(DexTargets targets) throws Throwable {
+    /** The header owns this action; hide the duplicate stock preference after its data is loaded. */
+    private void hideDuplicateDefaultRow(DexTargets targets) throws Throwable {
         Class<?> fragment = Class.forName("com.miui.appmanager.fragment.ApplicationsDetailsFragment", false, loader);
         Class<?> preference = Class.forName("androidx.preference.Preference", false, loader);
+        Class<?> category = Class.forName("androidx.preference.PreferenceCategory", false, loader);
+        Class<?> group = Class.forName("androidx.preference.PreferenceGroup", false, loader);
         Method findPreference = fragment.getMethod("findPreference", CharSequence.class);
-        Method setTitle = preference.getMethod("setTitle", CharSequence.class);
-        Method setSummary = preference.getMethod("setSummary", CharSequence.class);
-        Method getKey = preference.getMethod("getKey");
-        Method activityOf = fragment.getMethod("getActivity");
+        Method setVisible = preference.getMethod("setVisible", boolean.class);
+        Method isVisible = preference.getMethod("isVisible");
+        Method getParent = preference.getMethod("getParent");
+        Method getCount = group.getMethod("getPreferenceCount");
+        Method getChild = group.getMethod("getPreference", int.class);
         int loaded = 0;
         for (Method method : targets.usingStrings("app_default_loaded", "void", "enter_way")) {
             if (method.getDeclaringClass() != fragment) continue;
@@ -1240,49 +1240,29 @@ final class SecurityHooks {
             hooks.install(method, chain -> {
                 Object result = chain.proceed();
                 try {
-                    android.app.Activity host = (android.app.Activity) activityOf.invoke(chain.getThisObject());
-                    String pkg = packageOf(host);
                     Object row = findPreference.invoke(chain.getThisObject(), "app_default_pref");
-                    if (host == null || pkg == null || row == null) return result;
-                    boolean tr = "tr".equals(Locale.getDefault().getLanguage());
-                    setTitle.invoke(row, tr ? "Varsayılan olarak aç" : "Open by default");
-                    setSummary.invoke(row, linkState(host, pkg, tr));
+                    if (row == null) return result;
+                    setVisible.invoke(row, false);
+                    Object parent = getParent.invoke(row);
+                    // Avoid an empty "Advanced settings" heading; keep other visible settings.
+                    if (category.isInstance(parent)) {
+                        int count = (Integer) getCount.invoke(parent);
+                        boolean hasVisibleChild = false;
+                        for (int i = 0; i < count; i++) {
+                            if (Boolean.TRUE.equals(isVisible.invoke(getChild.invoke(parent, i)))) {
+                                hasVisibleChild = true;
+                                break;
+                            }
+                        }
+                        if (!hasVisibleChild) setVisible.invoke(parent, false);
+                    }
                 } catch (Throwable failure) {
-                    hooks.error("open by default row", failure);
+                    hooks.error("hide duplicate default row", failure);
                 }
                 return result;
             });
         }
         if (loaded == 0) throw new NoSuchMethodException("ApplicationsDetailsFragment load finished");
-        hooks.install(fragment.getMethod("onPreferenceClick", preference), chain -> {
-            try {
-                if ("app_default_pref".equals(getKey.invoke(chain.getArg(0)))) {
-                    android.app.Activity host = (android.app.Activity) activityOf.invoke(chain.getThisObject());
-                    String pkg = packageOf(host);
-                    if (host != null && pkg != null) {
-                        host.startActivity(new android.content.Intent("android.settings.APP_OPEN_BY_DEFAULT_SETTINGS",
-                                android.net.Uri.parse("package:" + pkg)));
-                        return true;
-                    }
-                }
-            } catch (Throwable failure) {
-                hooks.error("open by default click", failure);
-            }
-            return chain.proceed();
-        });
-    }
-
-    private static String linkState(Context context, String pkg, boolean tr) {
-        boolean allowed = false;
-        try {
-            android.content.pm.verify.domain.DomainVerificationManager manager =
-                    context.getSystemService(android.content.pm.verify.domain.DomainVerificationManager.class);
-            android.content.pm.verify.domain.DomainVerificationUserState state = manager == null ? null : manager.getDomainVerificationUserState(pkg);
-            allowed = state != null && state.isLinkHandlingAllowed();
-        } catch (Throwable ignored) {
-        }
-        if (tr) return allowed ? "Desteklenen bağlantıları açar" : "Bağlantıları açmaz";
-        return allowed ? "Opens supported links" : "Doesn't open links";
     }
 
     private void alwaysTrue(DexTargets targets, String name, String feature) throws Throwable {

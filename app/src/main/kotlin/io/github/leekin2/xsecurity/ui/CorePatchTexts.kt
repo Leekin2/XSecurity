@@ -15,6 +15,7 @@ internal fun corePatchLines(language: AppLanguage): Map<String, Line> {
             Line("Paylaşılan kullanıcı doğrulamasını atla", "Farklı imzalı shared UID paketlerine izin verir; imza karşılaştırma seçeneği de gerekir. ⚠ Açılış/izin sorunları oluşturabilir"),
             Line("Paket Doğrulama Ajanını Devre Dışı Bırak", "Kurulumun paket doğrulama ajanını atlar (ör. Play Protect). ⚠ Zararlı APK denetimi azalır"),
             Line("Engeli atla", "Nothing OS gibi desteklenen üretici engelleme listelerini atlar; HyperOS'ta bu sınıf bulunmayabilir"),
+            Line("Kalıcı sistem uygulamalarını güncellemeye izin ver", "SystemUI gibi kalıcı uygulamaların güncelleme engelini kurulum sırasında kaldırır. System Framework kapsamı ve telefonun yeniden başlatılması gerekir; uyumlu bir APK kullanın"),
         )
         AppLanguage.EN -> listOf(
             Line("Allow downgrades", "Allows APKs with lower version codes; older versions may be incompatible with existing app data"),
@@ -27,6 +28,7 @@ internal fun corePatchLines(language: AppLanguage): Map<String, Line> {
             Line("Bypass shared-user verification", "Allows different-signature shared-UID packages; also requires signer compatibility bypass. ⚠ May cause boot or permission problems"),
             Line("Disable package verification agent", "Skips the installation verification agent (such as Play Protect). ⚠ Reduces malicious-APK checking"),
             Line("Bypass vendor blocklist", "Bypasses supported vendor blocklists such as Nothing OS; this class may not exist on HyperOS"),
+            Line("Allow persistent system app updates", "Removes the update restriction for persistent apps such as SystemUI during installation. Requires System Framework scope and a phone reboot; use a compatible APK"),
         )
         AppLanguage.RU -> listOf(
             Line("Разрешить понижение версии", "Разрешает APK с меньшим кодом версии; старое приложение может не понимать текущие данные"),
@@ -39,6 +41,7 @@ internal fun corePatchLines(language: AppLanguage): Map<String, Line> {
             Line("Обойти проверку общего UID", "Разрешает разные подписи для общего UID; нужен обход сравнения подписей. ⚠ Возможны ошибки загрузки и разрешений"),
             Line("Отключить агент проверки пакетов", "Пропускает агент проверки установки, например Play Protect. ⚠ Снижает проверку вредоносных APK"),
             Line("Обойти блокировку производителя", "Обходит поддерживаемые списки блокировки, например Nothing OS; на HyperOS класса может не быть"),
+            Line("Разрешить обновление постоянных системных приложений", "Снимает запрет обновления постоянных приложений, например SystemUI, во время установки. Нужны System Framework и перезагрузка телефона; используйте совместимый APK"),
         )
         AppLanguage.ES -> listOf(
             Line("Permitir versiones anteriores", "Permite APK con código de versión inferior; los datos actuales pueden ser incompatibles"),
@@ -51,6 +54,7 @@ internal fun corePatchLines(language: AppLanguage): Map<String, Line> {
             Line("Omitir verificación de UID compartido", "Permite firmas distintas con UID compartido; requiere omitir compatibilidad de firmas. ⚠ Puede causar fallos de arranque o permisos"),
             Line("Desactivar agente de verificación", "Omite el agente de instalación, como Play Protect. ⚠ Reduce el análisis de APK maliciosos"),
             Line("Omitir bloqueo del fabricante", "Omite listas compatibles como las de Nothing OS; la clase puede no existir en HyperOS"),
+            Line("Permitir actualizar apps persistentes del sistema", "Elimina la restricción de actualización de apps persistentes como SystemUI durante la instalación. Requiere System Framework y reiniciar el teléfono; usa un APK compatible"),
         )
         AppLanguage.ZH -> listOf(
             Line("允许降级", "允许安装较低版本号 APK；旧版本可能不兼容现有应用数据"),
@@ -63,6 +67,7 @@ internal fun corePatchLines(language: AppLanguage): Map<String, Line> {
             Line("绕过共享用户验证", "允许不同签名的共享 UID 应用；需同时开启签名兼容性绕过。⚠ 可能导致启动或权限问题"),
             Line("停用软件包验证代理", "跳过安装验证代理（例如 Play Protect）。⚠ 减少恶意 APK 检查"),
             Line("绕过厂商拦截", "绕过受支持厂商（如 Nothing OS）的拦截名单；HyperOS 可能不存在相应类"),
+            Line("允许更新常驻系统应用", "仅在安装过程中解除 SystemUI 等常驻应用的更新限制。需要勾选 System Framework 并重启手机；请使用兼容的 APK"),
         )
     }
     return F.CORE_PATCH.zip(lines).toMap()

@@ -6,6 +6,7 @@ import androidx.compose.material.icons.rounded.BatteryStd
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.CarCrash
 import androidx.compose.material.icons.rounded.CellTower
+import androidx.compose.material.icons.rounded.ContentPaste
 import androidx.compose.material.icons.rounded.Crop
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.DataUsage
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.rounded.HourglassDisabled
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Insights
 import androidx.compose.material.icons.rounded.Keyboard
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.Palette
@@ -43,8 +45,6 @@ import androidx.compose.material.icons.rounded.VideoCall
 import androidx.compose.material.icons.rounded.ViewSidebar
 import androidx.compose.material.icons.rounded.WifiTethering
 import androidx.compose.material.icons.rounded.CloudOff
-import androidx.compose.material.icons.rounded.CloudUpload
-import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -111,14 +111,15 @@ val SECTIONS = listOf(
         Item(F.SIM_SUCCESS_DIALOG_OFF, Icons.Rounded.SimCard),
         Item(F.ROOT_CHECK_OFF, Icons.Rounded.Security),
         Item(F.USB_INSTALL_CHECK_OFF, Icons.Rounded.Usb),
-        Item(F.DARK_MODE_ALL_APPS, Icons.Rounded.DarkMode))),
+        Item(F.DARK_MODE_ALL_APPS, Icons.Rounded.DarkMode),
+        Item(F.CLIPBOARD_WHITELIST, Icons.Rounded.ContentPaste),
+        Item(F.APPLIST_UPLOAD_OFF, Icons.Rounded.CloudOff))),
     Section("store", Icons.Rounded.Storefront, Color(0xFF1FA2A6), listOf(
         Item(F.STORE_FORCE_CHOOSER, Icons.Rounded.Storefront),
         Item(F.STORE_GETAPPS_MINI, Icons.Rounded.PictureInPictureAlt))),
-    Section("gallery", Icons.Rounded.PhotoLibrary, Color(0xFF4285F4), listOf(
-        Item(F.GALLERY_GOOGLE_BACKUP, Icons.Rounded.CloudUpload))),
     Section("theme", Icons.Rounded.Palette, Color(0xFFD6409F), listOf(
-        Item(F.THEME_THIRD_PARTY, Icons.Rounded.Palette))),
+        Item(F.THEME_THIRD_PARTY, Icons.Rounded.Palette),
+        Item(F.THEME_FIX_RESET, Icons.Rounded.Lock))),
     Section("corepatch", Icons.Rounded.DeveloperBoard, Color(0xFF997744),
         F.CORE_PATCH.map { Item(it, Icons.Rounded.DeveloperBoard) }),
 )
@@ -139,6 +140,8 @@ data class UiState(
     val restarting: Boolean = false,
     /** Whether the home screen launcher icon is currently hidden. */
     val iconHidden: Boolean = false,
+    /** How many apps are on the background clipboard list. */
+    val clipboardApps: Int = 0,
 )
 
 /** Everything the screens can ask for. */
@@ -151,4 +154,6 @@ class Actions(
     val onLsposed: () -> Unit,
     /** Hides or shows the home screen launcher icon. */
     val onHideIcon: (Boolean) -> Unit,
+    /** Opens the picker for apps allowed to read the clipboard in the background. */
+    val onPickClipboardApps: () -> Unit,
 )

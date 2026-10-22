@@ -38,6 +38,8 @@ XSecurity does the same on the **stock** apps with LSPosed hooks. Nothing is rep
 - Package name and Open / Path / Open by default buttons
 - Disable and Share APK for every app
 - Version code, UID, data folder, APK file, minimum and target SDK (tap to copy)
+- Open in Play Store in additional app details; falls back to the Play website if the app is unavailable
+- A chain icon for Open by default in the header, with the duplicate lower row removed
 
 ### ⚙️ System
 - Full global Toolbox, 50 apps in the sidebar, no 5-10 second permission countdown
@@ -46,16 +48,22 @@ XSecurity does the same on the **stock** apps with LSPosed hooks. Nothing is rep
 - Second space and dual apps, car accident detection, car sickness relief, storage defragmentation (FBO)
 - Dark mode: list every installed app under "Individual apps" instead of just a few
 - App store: show a chooser for `market://` links instead of forcing GetApps, and open GetApps detail pages in a floating window
-- Gallery: enable the Google Photos backup server option, as on the global ROM
+- Background clipboard access for selected apps, with an app picker
+- Optional: stop Xiaomi Guard Provider from uploading the installed app list
+- Optional: prevent an applied theme from resetting to default
 - Optional: shuffled app lock PIN pad
 
-The new optional switches default to off. Framework display/capture and Core Patch changes require **System Framework** scope (`system` in modern libxposed) and a reboot. Scope selection is fixed to the module's eight system/app targets; unrelated apps are hidden. Opening XSecurity requests missing targets and removes obsolete scope entries. A compiled hook is not proof that every ROM implements its target; unavailable targets keep stock behaviour and are logged.
+The new optional switches default to off. Framework display/capture and signature-verification changes require **System Framework** scope (`system` in modern libxposed) and a reboot. Scope selection is fixed to the module's seven system/app targets; unrelated apps are hidden. Opening XSecurity requests missing targets and removes obsolete scope entries. A compiled hook is not proof that every ROM implements its target; unavailable targets keep stock behaviour and are logged.
 
-### Core Patch
-- Ten separate, off-by-default switches: downgrade, digest verification, resource-table alignment, signer comparison, exact matching, installed-signature compatibility, system hidden APIs, shared UID, verification agent and vendor blocklist
+### Signature verification bypass and installation options
+- Eleven separate, off-by-default switches: downgrade, digest verification, resource-table alignment, signer comparison, exact matching, installed-signature compatibility, system hidden APIs, shared UID, verification agent, vendor blocklist and persistent system app updates
 - Shared UID needs signer-comparison bypass. The vendor blocklist target is specific to supported ROMs such as Nothing OS.
-- Signer recovery uses an installed certificate or a certificate present in the APK; it does not invent a platform identity. This is an independent adapter, not a byte-for-byte copy of Core Patch N. Missing ROM targets are reported in the LSPosed log.
-- Enable Screenshot capture/detection hooks share the existing **Remove screenshot block** switch. DRM-protected content is not guaranteed capturable.
+- Signer recovery uses an installed certificate or a certificate present in the APK. Missing ROM targets are reported in the LSPosed log. An update must retain the installed package's shared-user identity; these options do not migrate it to another UID.
+- Persistent update hooks support both framework preparation method names and record limited installation diagnostics in LSPosed logs.
+
+### Screenshots and screen recording
+- The **Remove screenshot block** switch relaxes supported `FLAG_SECURE` capture restrictions, including relevant HyperOS screenshot and screen-recording checks.
+- Requires System Framework scope and a reboot. DRM-protected content is not guaranteed capturable.
 - The Background group and developer package/certificate test mode have been removed, including their hooks.
 
 ### 📦 System updater
@@ -84,7 +92,7 @@ Tested on the Xiaomi 15 Ultra with Security 13.5.8 and 13.6.5.
 
 ## Install
 1. Install XSecurity.
-2. Enable it in LSPosed and tick the scope: System Framework, Security, Battery and performance, Updater, Joyose, Themes and Gallery.
+2. Enable it in LSPosed and tick the scope: System Framework, Security, Battery and performance, Updater, Joyose, Themes and Guard Provider.
 3. Grant XSecurity its LSPosed permission, otherwise the app shows "Not active".
 4. Choose your switches and tap **Restart the apps** (needs root), or reboot.
 
@@ -133,6 +141,8 @@ XSecurity aynısını LSPosed hook'larıyla **orijinal** uygulamalarda yapar. Hi
 - Paket adı ve Aç / Yol / Varsayılan aç düğmeleri
 - Her uygulamada Devre dışı ve APK paylaş
 - Sürüm kodu, UID, veri klasörü, APK dosyası, en düşük ve hedef SDK (dokununca kopyalanır)
+- Ek uygulama ayrıntılarında Play Store’da aç; mağaza uygulaması yoksa Play web sayfası açılır
+- Üstte zincir simgeli Varsayılan aç düğmesi; alttaki tekrarlanan satır kaldırıldı
 
 #### ⚙️ Sistem
 - Global sürümdeki tam Araç kutusu, yan çubukta 50 uygulama, 5-10 saniyelik izin geri sayımı yok
@@ -141,16 +151,22 @@ XSecurity aynısını LSPosed hook'larıyla **orijinal** uygulamalarda yapar. Hi
 - İkinci alan ve çift uygulama, kaza algılama, araç tutması rahatlatma, depolama birleştirme (FBO)
 - Karanlık mod: "Tek tek uygulamalar" altında birkaç uygulama yerine yüklü tüm uygulamalar
 - Uygulama mağazası: `market://` bağlantılarında GetApps'e zorlamak yerine seçici göster, GetApps detaylarını kayan pencerede aç
-- Galeri: global ROM'daki gibi Google Fotoğraflar yedekleme sunucusu seçeneğini aç
+- Seçilen uygulamalar için arka planda pano okuma ve uygulama seçim ekranı
+- İsteğe bağlı: Xiaomi Guard Provider’ın yüklü uygulama listesini yüklemesini engelleme
+- İsteğe bağlı: uygulanan temanın varsayılana sıfırlanmasını önleme
 - İsteğe bağlı: uygulama kilidinde karışık PIN klavyesi
 
-Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve Core Patch seçenekleri için **System Framework** kapsamı (modern libxposed'da `system`) ve yeniden başlatma gerekir. Kapsam, modülün kullandığı sekiz sistem/uygulama hedefiyle sabittir; ilgisiz uygulamalar gizlenir. XSecurity açıldığında eksik hedefler istenir ve eski kapsam kayıtları kaldırılır. Derlemenin geçmesi her ROM'da çalıştığı anlamına gelmez; bulunamayan hedeflerde özgün davranış korunur ve günlüğe yazılır.
+Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve imza doğrulama seçenekleri için **System Framework** kapsamı (modern libxposed'da `system`) ve yeniden başlatma gerekir. Kapsam, modülün kullandığı yedi sistem/uygulama hedefiyle sabittir; ilgisiz uygulamalar gizlenir. XSecurity açıldığında eksik hedefler istenir ve eski kapsam kayıtları kaldırılır. Derlemenin geçmesi her ROM'da çalıştığı anlamına gelmez; bulunamayan hedeflerde özgün davranış korunur ve günlüğe yazılır.
 
-#### Core Patch
-- Varsayılan kapalı 10 ayrı seçenek: sürüm düşürme, özet doğrulama, kaynak tablosu hizalama, imza karşılaştırma, tam eşleşme, yüklü imza uyumluluğu, sistem gizli API'leri, shared UID, doğrulama ajanı ve üretici engel listesi
+#### İmza doğrulamasını atlama ve kurulum seçenekleri
+- Varsayılan kapalı 11 ayrı seçenek: sürüm düşürme, özet doğrulama, kaynak tablosu hizalama, imza karşılaştırma, tam eşleşme, yüklü imza uyumluluğu, sistem gizli API'leri, shared UID, doğrulama ajanı, üretici engel listesi ve kalıcı sistem uygulamalarını güncelleme
 - Shared UID için imza karşılaştırmayı atlama da gerekir. Üretici engel listesi hedefi Nothing OS gibi desteklenen ROM'lara özeldir.
-- İmza kurtarma, yüklü sertifikayı veya APK içindeki sertifikayı kullanır; platform kimliği uydurmaz. Core Patch N'nin birebir kod kopyası değil, bağımsız bir uyarlamadır. ROM'da bulunmayan hedefler LSPosed günlüğüne yazılır.
-- Enable Screenshot ekran yakalama/algılama hook'ları mevcut **Ekran görüntüsü engelini kaldır** anahtarındadır. DRM korumalı içeriğin yakalanması garanti edilmez.
+- İmza kurtarma, yüklü sertifikayı veya APK içindeki sertifikayı kullanır. ROM'da bulunmayan hedefler LSPosed günlüğüne yazılır. Güncelleme, yüklü paketin ortak kullanıcı kimliğini korumalıdır; bu seçenekler paketi başka bir UID’ye taşımaz.
+- Kalıcı uygulama güncelleme hook’ları eski ve yeni framework metot adlarını destekler; LSPosed günlüğüne sınırlı kurulum tanılaması yazar.
+
+#### Ekran görüntüsü ve ekran kaydı
+- **Ekran görüntüsü engelini kaldır** seçeneği, desteklenen `FLAG_SECURE` yakalama kısıtlamalarını ve ilgili HyperOS ekran görüntüsü/kayıt kontrollerini esnetir.
+- System Framework kapsamı ve yeniden başlatma gerekir. DRM korumalı içeriğin yakalanması garanti edilmez.
 - Arka plan bölümü ve paket/sertifika seçilen geliştirici test modu, hook kodları dahil kaldırıldı.
 
 #### 📦 Sistem güncelleyici
@@ -170,7 +186,7 @@ Xiaomi 15 Ultra'da Güvenlik 13.5.8 ve 13.6.5 ile test edildi.
 
 ### Kurulum
 1. XSecurity'yi kurun.
-2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Sistem Çerçevesi, Güvenlik, Pil ve performans, Güncelleyici, Joyose, Temalar ve Galeri.
+2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Sistem Çerçevesi, Güvenlik, Pil ve performans, Güncelleyici, Joyose, Temalar ve Guard Provider.
 3. XSecurity'ye LSPosed iznini verin; yoksa uygulama "Etkin değil" gösterir.
 4. Anahtarlarınızı seçip **Uygulamaları yeniden başlat**'a dokunun (root gerekir) ya da telefonu yeniden başlatın.
 

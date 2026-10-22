@@ -10,7 +10,7 @@ public final class XSecurityModule extends XposedModule {
     private static final String UPDATER = "com.android.updater";
     private static final String JOYOSE = "com.xiaomi.joyose";
     private static final String THEMES = "com.android.thememanager";
-    private static final String GALLERY = "com.miui.gallery";
+    private static final String GUARD = "com.miui.guardprovider";
     private final Hooks hooks = new Hooks(this);
     private String process;
 
@@ -19,7 +19,7 @@ public final class XSecurityModule extends XposedModule {
         process = param.getProcessName();
         try { Features.attach(getRemotePreferences(Features.GROUP)); }
         catch (Throwable failure) { hooks.error("Settings unavailable; defaults used", failure); }
-        hooks.info("module loaded in " + process + "; settings=" + Features.ready());
+        hooks.info("module loaded in " + process + "; version=" + BuildConfig.VERSION_NAME + "; settings=" + Features.ready());
     }
 
     @Override
@@ -38,8 +38,8 @@ public final class XSecurityModule extends XposedModule {
             new JoyoseHooks(hooks, param.getClassLoader()).install(info.sourceDir, info.dataDir);
         } else if (THEMES.equals(name) && (process == null || process.equals(THEMES))) {
             new ThemeHooks(hooks, param.getClassLoader(), info.sourceDir, info.dataDir).install();
-        } else if (GALLERY.equals(name)) {
-            new GalleryHooks(hooks, param.getClassLoader()).install();
+        } else if (GUARD.equals(name) && (process == null || process.equals(GUARD))) {
+            new GuardHooks(hooks, param.getClassLoader()).install(info.sourceDir, info.dataDir);
         }
     }
 
@@ -56,6 +56,10 @@ public final class XSecurityModule extends XposedModule {
         new DisplayPolicyHooks(hooks, param.getClassLoader()).install();
         new DarkModeHooks(hooks, param.getClassLoader()).install();
         new AppStoreHooks(hooks, param.getClassLoader()).install();
+        new ClipboardHooks(hooks, param.getClassLoader()).install();
+        if (Features.enabled(Features.THEME_FIX_RESET)) {
+            new FixThemeResetHooks(hooks).install();
+        }
         if (Features.enabled(Features.FLAG_SECURE)) {
             new FlagSecureHooks(hooks, param.getClassLoader()).install();
         }
