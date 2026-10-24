@@ -8,6 +8,8 @@
         <package android:name="com.android.thememanager" />
         <package android:name="org.lsposed.manager" />
         <package android:name="com.miui.guardprovider" />
+        <package android:name="com.android.settings" />
+        <package android:name="com.android.systemui" />
         <!-- Lets the clipboard app picker list launchable apps without a broad package permission. -->
         <intent>
             <action android:name="android.intent.action.MAIN" />

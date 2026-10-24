@@ -181,28 +181,9 @@ final class SecurityExtraHooks {
         for (Method method : methods) hooks.constant(method, true);
     }
 
-    /** Car sickness relief and its reminder timing. */
+    /** Keep support discovery and sensor/state checks together. */
     void carSickness(DexTargets targets) throws Throwable {
-        int count = 0;
-        for (Method method : targets.usingStrings("carsick", "boolean", "is_support_carsick")) {
-            hooks.constant(method, true);
-            count++;
-        }
-        try {
-            Class<?> fragment = Class.forName(
-                    "com.miui.carsickness.ui.CarSicknessReliefSettingsActivity$MotionSicknessReliefSettingsFragment", false, loader);
-            Method create = fragment.getDeclaredMethod("onCreatePreferences", android.os.Bundle.class, String.class);
-            for (Method called : targets.invokedBy("carsick_timing", create)) {
-                Class<?>[] types = called.getParameterTypes();
-                if (called.getReturnType() == boolean.class && types.length == 1 && types[0] == Context.class) {
-                    hooks.constant(called, true);
-                    count++;
-                }
-            }
-        } catch (ClassNotFoundException | NoSuchMethodException absent) {
-            // No settings page for reminder timing in this build.
-        }
-        if (count == 0) throw new NoSuchMethodException("Car sickness relief check not found");
+        new CarSicknessHooks(hooks, loader).install(targets);
     }
 
     /** Beauty in video calls: face tracking, privacy camera and auto light. */

@@ -11,6 +11,8 @@ public final class XSecurityModule extends XposedModule {
     private static final String JOYOSE = "com.xiaomi.joyose";
     private static final String THEMES = "com.android.thememanager";
     private static final String GUARD = "com.miui.guardprovider";
+    private static final String SETTINGS = "com.android.settings";
+    private static final String SYSTEM_UI = "com.android.systemui";
     private final Hooks hooks = new Hooks(this);
     private String process;
 
@@ -40,6 +42,10 @@ public final class XSecurityModule extends XposedModule {
             new ThemeHooks(hooks, param.getClassLoader(), info.sourceDir, info.dataDir).install();
         } else if (GUARD.equals(name) && (process == null || process.equals(GUARD))) {
             new GuardHooks(hooks, param.getClassLoader()).install(info.sourceDir, info.dataDir);
+        } else if (SETTINGS.equals(name) && (process == null || process.equals(SETTINGS))) {
+            new DarkModeSearchHooks(hooks, param.getClassLoader()).install();
+        } else if (SYSTEM_UI.equals(name) && (process == null || process.equals(SYSTEM_UI))) {
+            new LockscreenPinHooks(hooks, param.getClassLoader()).install();
         }
     }
 
@@ -58,7 +64,7 @@ public final class XSecurityModule extends XposedModule {
         new AppStoreHooks(hooks, param.getClassLoader()).install();
         new ClipboardHooks(hooks, param.getClassLoader()).install();
         if (Features.enabled(Features.THEME_FIX_RESET)) {
-            new FixThemeResetHooks(hooks).install();
+            new FixThemeResetHooks(hooks, param.getClassLoader()).install();
         }
         if (Features.enabled(Features.FLAG_SECURE)) {
             new FlagSecureHooks(hooks, param.getClassLoader()).install();

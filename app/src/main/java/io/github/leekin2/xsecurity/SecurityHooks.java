@@ -87,7 +87,8 @@ final class SecurityHooks {
             if (in(here, MAIN | REMOTE) && Features.enabled(Features.USB_INSTALL_CHECK_OFF)) run("USB install check off", () -> alwaysFalse(targets, "usb_install_check", "permcenter_install_intercept_enabled"));
             if (in(here, MAIN) && Features.enabled(Features.SECOND_SPACE)) run("second space", () -> secondSpace(targets));
             if (in(here, REMOTE) && Features.enabled(Features.DATA_USAGE)) run("data usage in control center", () -> dataUsage(targets));
-            if (in(here, MAIN) && Features.enabled(Features.TOOLBOX)) run("toolbox layout", () -> toolboxLayout(targets));
+            if (in(here, MAIN) && (Features.enabled(Features.TOOLBOX) || Features.enabled(Features.CAR_SICKNESS)))
+                run("toolbox layout", () -> new ToolboxHooks(hooks, loader).install(targets));
             for (Check check : CHECKS) {
                 if (in(here, check.processes()) && Features.enabled(check.feature())) run(check.name(), () -> answer(targets, check));
             }
@@ -559,8 +560,8 @@ final class SecurityHooks {
             android.content.res.ColorStateList ripple = android.content.res.ColorStateList.valueOf(night ? 0x33FFFFFF : 0x22000000);
             button.setBackground(new android.graphics.drawable.RippleDrawable(ripple, background, null));
             android.widget.ImageView icon = new android.widget.ImageView(host);
-            icon.setImageDrawable(new ActionIcon(items[i][0], ink, density));
-            int size = Math.round(28 * density);
+            icon.setImageDrawable(ActionIcons.load(host, items[i][0], ink));
+            int size = Math.round(24 * density);
             button.addView(icon, new android.widget.LinearLayout.LayoutParams(size, size));
             android.widget.TextView label = new android.widget.TextView(host);
             label.setText(items[i][1]);
@@ -580,63 +581,6 @@ final class SecurityHooks {
             row.addView(button, params);
         }
         return row;
-    }
-
-    /** Line icons like the modded app's: enter arrow, folder with arrow, chain link. */
-    private static final class ActionIcon extends android.graphics.drawable.Drawable {
-        private final String kind;
-        private final android.graphics.Paint paint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
-
-        ActionIcon(String kind, int color, float density) {
-            this.kind = kind;
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(2.2f * density);
-            paint.setStrokeCap(android.graphics.Paint.Cap.ROUND);
-            paint.setStrokeJoin(android.graphics.Paint.Join.ROUND);
-            paint.setColor(color);
-        }
-
-        @Override public void draw(android.graphics.Canvas canvas) {
-            android.graphics.Rect b = getBounds();
-            float s = Math.min(b.width(), b.height()) / 24f;
-            canvas.save();
-            canvas.translate(b.left + (b.width() - 24 * s) / 2f, b.top + (b.height() - 24 * s) / 2f);
-            canvas.scale(s, s);
-            paint.setStrokeWidth(paint.getStrokeWidth() / s);
-            android.graphics.Path p = new android.graphics.Path();
-            switch (kind) {
-                case "open":
-                    // bracket on the right, arrow entering from the left
-                    p.moveTo(13, 4); p.lineTo(18, 4); p.quadTo(20, 4, 20, 6); p.lineTo(20, 18); p.quadTo(20, 20, 18, 20); p.lineTo(13, 20);
-                    p.moveTo(4, 12); p.lineTo(15, 12);
-                    p.moveTo(11, 8); p.lineTo(15, 12); p.lineTo(11, 16);
-                    break;
-                case "path":
-                    // folder with an arrow inside
-                    p.moveTo(3, 7); p.quadTo(3, 5, 5, 5); p.lineTo(9, 5); p.lineTo(11, 7); p.lineTo(19, 7); p.quadTo(21, 7, 21, 9);
-                    p.lineTo(21, 17); p.quadTo(21, 19, 19, 19); p.lineTo(5, 19); p.quadTo(3, 19, 3, 17); p.close();
-                    p.moveTo(8, 13); p.lineTo(15, 13);
-                    p.moveTo(12.5f, 10.5f); p.lineTo(15, 13); p.lineTo(12.5f, 15.5f);
-                    break;
-                default:
-                    // The original XSecurity chain icon: two open links joined by a bar.
-                    p.moveTo(10, 7); p.lineTo(7, 7);
-                    p.arcTo(new android.graphics.RectF(2, 7, 12, 17), 270, -180, false);
-                    p.lineTo(10, 17);
-                    p.moveTo(14, 7); p.lineTo(17, 7);
-                    p.arcTo(new android.graphics.RectF(12, 7, 22, 17), 270, 180, false);
-                    p.lineTo(14, 17);
-                    p.moveTo(8, 12); p.lineTo(16, 12);
-                    break;
-            }
-            canvas.drawPath(p, paint);
-            paint.setStrokeWidth(paint.getStrokeWidth() * s);
-            canvas.restore();
-        }
-
-        @Override public void setAlpha(int alpha) { paint.setAlpha(alpha); }
-        @Override public void setColorFilter(android.graphics.ColorFilter filter) { paint.setColorFilter(filter); }
-        @Override public int getOpacity() { return android.graphics.PixelFormat.TRANSLUCENT; }
     }
 
     private static void appAction(android.app.Activity host, String pkg, String action, boolean tr) {
@@ -849,128 +793,6 @@ final class SecurityHooks {
             }
             return chain.proceed();
         });
-    }
-
-    /** One extra Toolbox entry: string and icon resource names, intent, package it needs (or null). */
-    private record Tool(String title, String icon, String intent, String needsPackage) { }
-
-    private static final String ACT = "#Intent;action=";
-    private static final Tool[] TOOLS_MORE = {
-            new Tool("activity_title_networkassistants", "ic_net_safe_n", ACT + "miui.intent.action.NETWORKASSISTANT_ENTRANCE;end", null),
-            new Tool("app_manager_net_control_title", "ic_net_control_n", ACT + "miui.intent.action.NETWORKASSISTANT_FIREWALL;end", null),
-            new Tool("quick_reply_title", "warning_wechat", ACT + "miui.intent.action.QUICK_REPLY_SETTINGS;end", null),
-            new Tool("sim_lock_setting_title", "sp_icon_sim_protect", ACT + "miui.intent.action.SIM_LOCK_CHOOSE;end", null),
-            new Tool("sp_power_off_password_title", "sp_icon_power_off_password", ACT + "miui.intent.action.SHUT_DOWN_PASSWORD_ACTIVITY;end", null),
-            new Tool("videobox_settings_title", "ic_video_box_n", ACT + "com.miui.gamebooster.action.VIDEOBOX_SETTINGS_ALL;end", null),
-            new Tool("privacy_risk_detection_title", "ic_privacy_protect_n",
-                    "#Intent;component=com.miui.securitycenter/com.miui.permcenter.detection.PrivacyRiskDetectionActivity;end", null),
-            new Tool("privacy_thumbnail_blur_title", "icon_clean_lockscreen",
-                    "#Intent;component=com.miui.securitycenter/com.miui.permcenter.privacyblur.PrivacyThumbnailBlurSettings;end", null),
-            new Tool("beauty_fc_assistant", "ic_special_perm_camera",
-                    "#Intent;component=com.miui.securitycenter/com.miui.gamebooster.beauty.BeautySettingsActivity;end", null),
-            new Tool("app_predict_setting_title", "app_predict_dialog_icon", ACT + "miui.intent.action.APP_PREDICT_GUIDE_DIALOG_ALWAYS;end", null),
-    };
-    private static final Tool[] CLEAN_MORE = {
-            new Tool("card_main_facebookclean_title", "ic_facebook_clean_n", ACT + "miui.intent.action.GARBAGE_DEEPCLEAN_FACEBOOK;end", "com.facebook.katana"),
-            new Tool("card_main_whatsappclean_title", "ic_whatsapp_clean_n", ACT + "miui.intent.action.GARBAGE_DEEPCLEAN_WHATSAPP;end", "com.whatsapp"),
-            new Tool("card_main_apkclean_title", "ic_apk_clean_n", ACT + "miui.intent.action.GARBAGE_APK_MANAGE;end", null),
-            new Tool("card_main_appdataclean_title", "ic_appdata_clean_n", ACT + "miui.intent.action.GARBAGE_APP_DATA_MANAGE;end", null),
-            new Tool("card_main_video_manage_title", "ic_video_clean_n", ACT + "miui.intent.action.GARBAGE_VIDEO_MANAGE;end", null),
-            new Tool("card_main_galleryclean_title", "ic_gallery_clean_n", ACT + "miui.intent.action.GARBAGE_IMAGE_MANAGE;end", null),
-    };
-    private static final Tool[] APPS_MORE = {
-            new Tool("title_of_auto_launch_manage", "ic_auto_start_n", ACT + "miui.intent.action.OP_AUTO_START;end", null),
-            new Tool("activity_title_permissions_manager", "ic_launcher_license_manage",
-                    "#Intent;component=com.miui.securitycenter/com.miui.permcenter.permissions.AppPermissionsTabActivity;end", null),
-    };
-    private static final Tool[] BATTERY_MORE = {
-            new Tool("power_center_auto_shutdown", "ic_shutdown_ontime_n", ACT + "miui.powercenter.intent.action.BOOT_SHUTDOWN_ONTIME;end", null),
-            new Tool("auto_task_main_title", "ic_auto_task_n",
-                    "#Intent;component=com.miui.securitycenter/com.miui.powercenter.autotask.AutoTaskManageActivity;end", null),
-    };
-
-    /**
-     * The Toolbox lists ("Tools", "Cleaner", "Apps", "Battery") are built on the phone; the modded app
-     * rewrote them to the global edition's full set. Nothing is fetched, so it also works where the
-     * Security cloud host is blocked.
-     */
-    private void toolboxLayout(DexTargets targets) throws Throwable {
-        Class<?> data = Class.forName("com.miui.common.card.GridFunctionData", false, loader);
-        Constructor<?> create = data.getConstructor(String.class, String.class, int.class, String.class);
-        Method action = data.getMethod("getAction");
-        Method statKey = data.getMethod("setStatKey", String.class);
-        int hooked = 0;
-        hooked += extendList(targets, "toolbox_tools", create, action, statKey, TOOLS_MORE, 1, "HB_MAIN_ACTIVITY",
-                "miui.intent.action.HB_MAIN_ACTIVITY", "com.miui.securitycenter.action.FIRST_AID_KIT", "miui.intent.action.WARNINGCENTER_MAIN");
-        hooked += extendList(targets, "toolbox_clean", create, action, statKey, CLEAN_MORE, -1, null,
-                "miui.intent.action.GARBAGE_DEEPCLEAN_QQ", "miui.intent.action.GARBAGE_DEEPCLEAN_WECHAT", "miui.intent.action.OPTIMIZE_MANAGE");
-        hooked += extendList(targets, "toolbox_apps", create, action, statKey, APPS_MORE, 1, null,
-                "miui.intent.action.MANAGE_PRIVACY_APPS", "miui.intent.action.XSPACE_SETTING", "com.miui.securitycenter.action.TRANSITION");
-        hooked += extendList(targets, "toolbox_battery", create, action, statKey, BATTERY_MORE, 1, null,
-                "com.miui.powercenter.POWER_SAVE", "com.miui.securitycenter.action.POWER_SETTINGS");
-        if (hooked == 0) throw new NoSuchMethodException("Toolbox lists not found");
-    }
-
-    /** Inserts {@code more} at {@code at} (-1 = before the last entry); {@code drop} removes a stock entry by intent text. */
-    private int extendList(DexTargets targets, String name, Constructor<?> create, Method action, Method statKey,
-                           Tool[] more, int at, String drop, String... intents) throws Throwable {
-        String[] strings = new String[intents.length];
-        for (int i = 0; i < intents.length; i++) strings[i] = ACT + intents[i] + ";end";
-        int count = 0;
-        for (Method method : targets.usingStrings(name, "java.util.ArrayList", strings)) {
-            if (!Modifier.isStatic(method.getModifiers())) continue;
-            hooks.install(method, chain -> {
-                Object result = chain.proceed();
-                Context app = currentApplication();
-                if (!(result instanceof java.util.ArrayList) || app == null) return result;
-                @SuppressWarnings("unchecked") java.util.ArrayList<Object> list = (java.util.ArrayList<Object>) result;
-                if (drop != null) {
-                    list.removeIf(item -> {
-                        try {
-                            String intent = (String) action.invoke(item);
-                            return intent != null && intent.contains(drop);
-                        } catch (ReflectiveOperationException unavailable) {
-                            return false;
-                        }
-                    });
-                }
-                java.util.ArrayList<Object> added = new java.util.ArrayList<>();
-                for (Tool tool : more) {
-                    if (tool.needsPackage() != null && !installed(app, tool.needsPackage())) continue;
-                    int title = app.getResources().getIdentifier(tool.title(), "string", app.getPackageName());
-                    int icon = app.getResources().getIdentifier(tool.icon(), "drawable", app.getPackageName());
-                    if (title == 0 || icon == 0) continue;
-                    boolean present = false;
-                    for (Object item : list) if (tool.intent().equals(action.invoke(item))) { present = true; break; }
-                    if (present) continue;
-                    Object entry = create.newInstance(app.getString(title), null, icon, tool.intent());
-                    statKey.invoke(entry, "xsecurity_" + tool.icon());
-                    added.add(entry);
-                }
-                int index = at < 0 ? Math.max(0, list.size() - 1) : Math.min(at, list.size());
-                list.addAll(index, added);
-                return list;
-            });
-            count++;
-        }
-        return count;
-    }
-
-    private static boolean installed(Context context, String pkg) {
-        try {
-            context.getPackageManager().getPackageInfo(pkg, 0);
-            return true;
-        } catch (android.content.pm.PackageManager.NameNotFoundException absent) {
-            return false;
-        }
-    }
-
-    private static Context currentApplication() {
-        try {
-            return (Context) Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null);
-        } catch (Throwable unavailable) {
-            return null;
-        }
     }
 
     /** Car accident detection and emergency contacts, also on phones the ROM leaves out. */

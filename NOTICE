@@ -19,6 +19,9 @@ HyperCeiler (https://github.com/ReChronoRain/HyperCeiler)
       - DarkModeHooks.java
           from rules/systemframework/display/AllDarkMode.kt
           (itself derived from SetoHook by SetoSkins)
+      - LockscreenPinHooks.java
+          adapted from rules/systemui/lockscreen/ScramblePIN.java;
+          verified phone layout matrices and rollback for complete digit views
       - AppStoreHooks.java
           from rules/systemframework/others/BypassForceMiAppStore.java
       - ClipboardHooks.java
@@ -35,6 +38,17 @@ HyperCeiler (https://github.com/ReChronoRain/HyperCeiler)
     Further hooks in the developer's own base (Core Patch, Flag Secure, theme,
     updater and others) are likewise derived from HyperCeiler and its upstreams;
     see the per-file headers.
+
+Material Design Icons (https://github.com/google/material-design-icons)
+    Copyright Google LLC. Licensed under the Apache License 2.0.
+    The app-info action vectors use Material Rounded Launch, Folder Open and Link,
+    the same icon family used by JingMatrix/LSPosed's manager.
+    SVG path data converted to Android VectorDrawable XML, with tint supplied by the host.
+    Source revision: 10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7.
+    LSPosed icon-family reference: JingMatrix/LSPosed revision
+    ddeed8ca1ffedfaba7f4341b911089906862d5c4,
+    manager/src/main/kotlin/org/matrix/vector/manager/ui/components/PackageActionMenu.kt
+    and gradle/libs.versions.toml. No LSPosed application code is copied.
 
 miuix (https://github.com/miuix-kotlin-multiplatform/miuix)
     Used for the HyperOS-style settings UI, under its own license.

@@ -8,7 +8,7 @@ An LSPosed module for the HyperOS 4 China ROM.
 ## Why
 The China ROM hides many features of the Security app: Game Turbo tools, the 60 FPS limit for games that are not on Xiaomi's list, battery health details, smart charging options, the full Toolbox and more. Modded Security APKs bring them back, but they replace a system app and break with every update.
 
-XSecurity does the same on the **stock** apps with LSPosed hooks. Nothing is replaced, every feature has its own switch, and it keeps working after app updates.
+XSecurity enables these features on the **stock** apps with LSPosed hooks. No system APK replacement is required, and each feature has its own switch. Compatibility depends on the ROM and app versions.
 
 ## Features
 ### 🎮 Games
@@ -46,20 +46,22 @@ XSecurity does the same on the **stock** apps with LSPosed hooks. Nothing is rep
 - Video toolbox (theatre mode, Dolby, MEMC, AI picture, new video box) that stays on when the phone warms up
 - Call toolbox: gestures, effects and beauty in video calls
 - Second space and dual apps, car accident detection, car sickness relief, storage defragmentation (FBO)
-- Dark mode: list every installed app under "Individual apps" instead of just a few
+- Dark mode: list every installed app under "Individual apps", with a search action for app names and package names. Clear the query to restore the list without changing app toggles. Search also requires Settings (`com.android.settings`) in LSPosed scope.
 - App store: show a chooser for `market://` links instead of forcing GetApps, and open GetApps detail pages in a floating window
 - Background clipboard access for selected apps, with an app picker
 - Optional: stop Xiaomi Guard Provider from uploading the installed app list
 - Optional: prevent an applied theme from resetting to default
 - Optional: shuffled app lock PIN pad
+- Optional: a separate shuffled phone lock-screen PIN keypad, requiring System UI scope; digit verification and emergency/delete controls are preserved
 
-The new optional switches default to off. Framework display/capture and signature-verification changes require **System Framework** scope (`system` in modern libxposed) and a reboot. Scope selection is fixed to the module's seven system/app targets; unrelated apps are hidden. Opening XSecurity requests missing targets and removes obsolete scope entries. A compiled hook is not proof that every ROM implements its target; unavailable targets keep stock behaviour and are logged.
+The new optional switches default to off. Framework display/capture and signature-verification changes require **System Framework** scope (`system` in modern libxposed) and a reboot. Scope selection is fixed to the module's nine system/app targets; unrelated apps are hidden. Opening XSecurity requests missing targets and removes obsolete scope entries. A compiled hook is not proof that every ROM implements its target; unavailable targets keep stock behaviour and are logged.
 
 ### Signature verification bypass and installation options
-- Eleven separate, off-by-default switches: downgrade, digest verification, resource-table alignment, signer comparison, exact matching, installed-signature compatibility, system hidden APIs, shared UID, verification agent, vendor blocklist and persistent system app updates
+- Twelve separate, off-by-default switches: downgrade, digest verification, resource-table alignment, signer comparison, exact matching, installed-signature compatibility, system hidden APIs, shared UID, verification agent, vendor blocklist, persistent system app updates and SystemUI UID preservation
 - Shared UID needs signer-comparison bypass. The vendor blocklist target is specific to supported ROMs such as Nothing OS.
 - Signer recovery uses an installed certificate or a certificate present in the APK. Missing ROM targets are reported in the LSPosed log. An update must retain the installed package's shared-user identity; these options do not migrate it to another UID.
 - Persistent update hooks support both framework preparation method names and record limited installation diagnostics in LSPosed logs.
+- Optional SystemUI UID preservation uses the phone’s recorded system shared-user identity for parsed updates, including cached parses at boot. It never migrates installed UID ownership or rewrites APKs. The module must remain active with differently-declared updates. Android/API and ROM compatibility checks remain in force.
 
 ### Screenshots and screen recording
 - The **Remove screenshot block** switch relaxes supported `FLAG_SECURE` capture restrictions, including relevant HyperOS screenshot and screen-recording checks.
@@ -84,6 +86,9 @@ The new optional switches default to off. Framework display/capture and signatur
 
 The phone's language is Turkish, so some Security app labels are Turkish (Aç = Open, Yol = Path).
 
+
+> **Advanced users only:** persistent system-app updates and SystemUI UID preservation may cause SystemUI crashes or prevent booting with an incompatible APK. Enable only if you know how to recover your device. Keep XSecurity and UID preservation enabled while a differently-declared SystemUI update is installed. A tester reported a successful update; this is not a guarantee for other ROMs or subsequent reboots.
+
 ## Requirements
 - A Xiaomi phone on the HyperOS 4 China ROM (Android 17)
 - Root (KernelSU, SukiSU or Magisk) and LSPosed (API 102)
@@ -92,7 +97,7 @@ Tested on the Xiaomi 15 Ultra with Security 13.5.8 and 13.6.5.
 
 ## Install
 1. Install XSecurity.
-2. Enable it in LSPosed and tick the scope: System Framework, Security, Battery and performance, Updater, Joyose, Themes and Guard Provider.
+2. Enable it in LSPosed and tick the scope: System Framework, Security, Battery and performance, Updater, Joyose, Themes, Guard Provider, Settings and System UI.
 3. Grant XSecurity its LSPosed permission, otherwise the app shows "Not active".
 4. Choose your switches and tap **Restart the apps** (needs root), or reboot.
 
@@ -111,7 +116,7 @@ HyperOS 4 Çin ROM'u için bir LSPosed modülü.
 ### Neden
 Çin ROM'u Güvenlik uygulamasının birçok özelliğini gizliyor: Oyun Turbo araçları, Xiaomi'nin listesinde olmayan oyunlarda 60 FPS sınırı, pil sağlığı ayrıntıları, akıllı şarj seçenekleri, tam Araç kutusu ve daha fazlası. Modlu Güvenlik APK'ları bunları geri getiriyor ama bir sistem uygulamasının yerine geçiyor ve her güncellemede bozuluyor.
 
-XSecurity aynısını LSPosed hook'larıyla **orijinal** uygulamalarda yapar. Hiçbir şeyin yerine geçmez, her özelliğin kendi anahtarı vardır ve uygulama güncellense de çalışmaya devam eder.
+XSecurity bu özellikleri LSPosed hook'larıyla **orijinal** uygulamalarda açar. Sistem APK'sını değiştirmek gerekmez ve her özelliğin kendi anahtarı vardır. Uyumluluk ROM ve uygulama sürümlerine bağlıdır.
 
 ### Özellikler
 #### 🎮 Oyunlar
@@ -149,20 +154,22 @@ XSecurity aynısını LSPosed hook'larıyla **orijinal** uygulamalarda yapar. Hi
 - Telefon ısınınca kapanmayan video araç kutusu (sinema modu, Dolby, MEMC, yapay zekâ görüntü, yeni video kutusu)
 - Arama araç kutusu: görüntülü aramada hareketler, efektler ve güzellik
 - İkinci alan ve çift uygulama, kaza algılama, araç tutması rahatlatma, depolama birleştirme (FBO)
-- Karanlık mod: "Tek tek uygulamalar" altında birkaç uygulama yerine yüklü tüm uygulamalar
+- Karanlık mod: "Tek tek uygulamalar" altında tüm uygulamalar ve ad/paket adına göre arama düğmesi. Aramayı temizlemek uygulama anahtarlarını değiştirmeden listeyi geri getirir. Arama için LSPosed kapsamında Ayarlar (`com.android.settings`) da seçilmelidir.
 - Uygulama mağazası: `market://` bağlantılarında GetApps'e zorlamak yerine seçici göster, GetApps detaylarını kayan pencerede aç
 - Seçilen uygulamalar için arka planda pano okuma ve uygulama seçim ekranı
 - İsteğe bağlı: Xiaomi Guard Provider’ın yüklü uygulama listesini yüklemesini engelleme
 - İsteğe bağlı: uygulanan temanın varsayılana sıfırlanmasını önleme
 - İsteğe bağlı: uygulama kilidinde karışık PIN klavyesi
+- İsteğe bağlı: telefonun kilit ekranı için ayrı karışık PIN seçeneği; Sistem Arayüzü kapsamı gerekir. PIN doğrulaması ve acil arama/silme tuşları korunur
 
-Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve imza doğrulama seçenekleri için **System Framework** kapsamı (modern libxposed'da `system`) ve yeniden başlatma gerekir. Kapsam, modülün kullandığı yedi sistem/uygulama hedefiyle sabittir; ilgisiz uygulamalar gizlenir. XSecurity açıldığında eksik hedefler istenir ve eski kapsam kayıtları kaldırılır. Derlemenin geçmesi her ROM'da çalıştığı anlamına gelmez; bulunamayan hedeflerde özgün davranış korunur ve günlüğe yazılır.
+Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve imza doğrulama seçenekleri için **System Framework** kapsamı (modern libxposed'da `system`) ve yeniden başlatma gerekir. Kapsam, modülün kullandığı dokuz sistem/uygulama hedefiyle sabittir; ilgisiz uygulamalar gizlenir. XSecurity açıldığında eksik hedefler istenir ve eski kapsam kayıtları kaldırılır. Derlemenin geçmesi her ROM'da çalıştığı anlamına gelmez; bulunamayan hedeflerde özgün davranış korunur ve günlüğe yazılır.
 
 #### İmza doğrulamasını atlama ve kurulum seçenekleri
-- Varsayılan kapalı 11 ayrı seçenek: sürüm düşürme, özet doğrulama, kaynak tablosu hizalama, imza karşılaştırma, tam eşleşme, yüklü imza uyumluluğu, sistem gizli API'leri, shared UID, doğrulama ajanı, üretici engel listesi ve kalıcı sistem uygulamalarını güncelleme
+- Varsayılan kapalı 12 ayrı seçenek: sürüm düşürme, özet doğrulama, kaynak tablosu hizalama, imza karşılaştırma, tam eşleşme, yüklü imza uyumluluğu, sistem gizli API'leri, shared UID, doğrulama ajanı, üretici engel listesi, kalıcı sistem uygulamalarını güncelleme ve SystemUI UID koruması
 - Shared UID için imza karşılaştırmayı atlama da gerekir. Üretici engel listesi hedefi Nothing OS gibi desteklenen ROM'lara özeldir.
 - İmza kurtarma, yüklü sertifikayı veya APK içindeki sertifikayı kullanır. ROM'da bulunmayan hedefler LSPosed günlüğüne yazılır. Güncelleme, yüklü paketin ortak kullanıcı kimliğini korumalıdır; bu seçenekler paketi başka bir UID’ye taşımaz.
 - Kalıcı uygulama güncelleme hook’ları eski ve yeni framework metot adlarını destekler; LSPosed günlüğüne sınırlı kurulum tanılaması yazar.
+- İsteğe bağlı SystemUI UID koruması, güncellemeler için telefonda kayıtlı kimliği kullanır; mevcut UID sahipliğini veya APK dosyasını değiştirmez. Farklı kimlik bildiren güncellemeler kullanılırken modül etkin kalmalıdır. Android/API ve ROM uyumluluğunu sağlamaz.
 
 #### Ekran görüntüsü ve ekran kaydı
 - **Ekran görüntüsü engelini kaldır** seçeneği, desteklenen `FLAG_SECURE` yakalama kısıtlamalarını ve ilgili HyperOS ekran görüntüsü/kayıt kontrollerini esnetir.
@@ -178,6 +185,9 @@ Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve imza
 - English, Türkçe, Русский, Español, 简体中文
 - Ana ekran simgesini gizle; gizlendikten sonra uygulamayı LSPosed'den açın
 
+
+> **Yalnızca ileri düzey kullanıcılar:** kalıcı sistem uygulaması güncellemeleri ve SystemUI UID koruması, uyumsuz APK ile SystemUI çökmesine veya telefonun açılmamasına yol açabilir. Yalnızca cihazınızı kurtarmayı biliyorsanız etkinleştirin. Farklı kimlik bildiren SystemUI güncellemesi yüklüyken XSecurity ve UID koruması etkin kalmalıdır. Bir test kullanıcısı başarılı güncelleme bildirdi; diğer ROM’lar veya sonraki yeniden başlatmalar için garanti değildir.
+
 ### Gereksinimler
 - HyperOS 4 Çin ROM'lu (Android 17) bir Xiaomi telefon
 - Root (KernelSU, SukiSU veya Magisk) ve LSPosed (API 102)
@@ -186,7 +196,7 @@ Xiaomi 15 Ultra'da Güvenlik 13.5.8 ve 13.6.5 ile test edildi.
 
 ### Kurulum
 1. XSecurity'yi kurun.
-2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Sistem Çerçevesi, Güvenlik, Pil ve performans, Güncelleyici, Joyose, Temalar ve Guard Provider.
+2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Sistem Çerçevesi, Güvenlik, Pil ve performans, Güncelleyici, Joyose, Temalar, Guard Provider, Ayarlar ve Sistem Arayüzü.
 3. XSecurity'ye LSPosed iznini verin; yoksa uygulama "Etkin değil" gösterir.
 4. Anahtarlarınızı seçip **Uygulamaları yeniden başlat**'a dokunun (root gerekir) ya da telefonu yeniden başlatın.
 

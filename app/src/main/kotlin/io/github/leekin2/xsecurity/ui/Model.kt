@@ -104,6 +104,7 @@ val SECTIONS = listOf(
         Item(F.DOCK, Icons.Rounded.ViewSidebar),
         Item(F.PERM_NO_WAIT, Icons.Rounded.HourglassDisabled),
         Item(F.APPLOCK_SCRAMBLE, Icons.Rounded.Keyboard),
+        Item(F.LOCKSCREEN_PIN_SCRAMBLE, Icons.Rounded.Keyboard),
         Item(F.CAR_SICKNESS, Icons.Rounded.CarCrash),
         Item(F.SECOND_SPACE, Icons.Rounded.Group),
         Item(F.WARNINGS, Icons.Rounded.CarCrash),
