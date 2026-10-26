@@ -81,6 +81,8 @@ val SECTIONS = listOf(
         Item(F.JOYOSE_GPU, Icons.Rounded.DeveloperBoard),
         Item(F.JOYOSE_CLOUD_OFF, Icons.Rounded.CloudOff))),
     Section("network", Icons.Rounded.CellTower, Color(0xFF8E4EC6), listOf(
+        Item(F.IMS_ICONS, Icons.Rounded.SimCard),
+        Item(F.SIM_MENUS, Icons.Rounded.SimCard),
         Item(F.NET_APP_CONTROLS, Icons.Rounded.Wifi),
         Item(F.NET_QUOTA_KEEP, Icons.Rounded.SignalCellularAlt),
         Item(F.NET_HOTSPOT_KEEP, Icons.Rounded.Wifi),

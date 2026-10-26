@@ -10,6 +10,7 @@
         <package android:name="com.miui.guardprovider" />
         <package android:name="com.android.settings" />
         <package android:name="com.android.systemui" />
+        <package android:name="com.android.phone" />
         <!-- Lets the clipboard app picker list launchable apps without a broad package permission. -->
         <intent>
             <action android:name="android.intent.action.MAIN" />

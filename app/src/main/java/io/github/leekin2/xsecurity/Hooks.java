@@ -3,7 +3,9 @@ package io.github.leekin2.xsecurity;
 import android.util.Log;
 import io.github.libxposed.api.XposedInterface;
 import io.github.libxposed.api.XposedModule;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /** Installs hooks in protective mode and logs to both logcat and the LSPosed log. */
@@ -36,6 +38,12 @@ final class Hooks {
         } catch (Throwable failure) {
             error("Deoptimization unavailable: " + method.toGenericString(), failure);
         }
+    }
+
+    /** Runs {@code base} (a superclass constructor) on a new {@code type}, for subclasses whose own constructor R8 removed. */
+    Object newInstanceSpecial(Constructor<?> base, Class<?> type, Object... args) throws Throwable {
+        try { return module.getInvoker(base).newInstanceSpecial(type, args); }
+        catch (InvocationTargetException failure) { throw failure.getCause(); }
     }
 
     void info(String message) {

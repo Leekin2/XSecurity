@@ -33,6 +33,8 @@ XSecurity enables these features on the **stock** apps with LSPosed hooks. No sy
 - The hotspot stays on at its daily limit (only a warning)
 - Data used this month in the shade and Control Center
 - Optional: extend Xiaomi's Wi-Fi/background network controls to eligible system apps; configure rules in Security → Data usage
+- Optional: the Global ROM's original Vo LTE / Vo NR / Vo WiFi status bar icons on the China ROM, driven by the real IMS registration (System UI scope)
+- Optional: Xiaomi's own **Use VoLTE** switch and Wi-Fi calling **Network preferences** on the SIM card settings page, kept after reboot (Phone scope)
 
 ### 📱 App info
 - Package name and Open / Path / Open by default buttons
@@ -54,7 +56,7 @@ XSecurity enables these features on the **stock** apps with LSPosed hooks. No sy
 - Optional: shuffled app lock PIN pad
 - Optional: a separate shuffled phone lock-screen PIN keypad, requiring System UI scope; digit verification and emergency/delete controls are preserved
 
-The new optional switches default to off. Framework display/capture and signature-verification changes require **System Framework** scope (`system` in modern libxposed) and a reboot. Scope selection is fixed to the module's nine system/app targets; unrelated apps are hidden. Opening XSecurity requests missing targets and removes obsolete scope entries. A compiled hook is not proof that every ROM implements its target; unavailable targets keep stock behaviour and are logged.
+The new optional switches default to off. Framework display/capture and signature-verification changes require **System Framework** scope (`system` in modern libxposed) and a reboot. Scope selection is fixed to the module's ten system/app targets; unrelated apps are hidden. Opening XSecurity requests missing targets and removes obsolete scope entries. A compiled hook is not proof that every ROM implements its target; unavailable targets keep stock behaviour and are logged.
 
 ### Signature verification bypass and installation options
 - Twelve separate, off-by-default switches: downgrade, digest verification, resource-table alignment, signer comparison, exact matching, installed-signature compatibility, system hidden APIs, shared UID, verification agent, vendor blocklist, persistent system app updates and SystemUI UID preservation
@@ -97,7 +99,7 @@ Tested on the Xiaomi 15 Ultra with Security 13.5.8 and 13.6.5.
 
 ## Install
 1. Install XSecurity.
-2. Enable it in LSPosed and tick the scope: System Framework, Security, Battery and performance, Updater, Joyose, Themes, Guard Provider, Settings and System UI.
+2. Enable it in LSPosed and tick the scope: System Framework, Security, Battery and performance, Updater, Joyose, Themes, Guard Provider, Settings, System UI and Phone.
 3. Grant XSecurity its LSPosed permission, otherwise the app shows "Not active".
 4. Choose your switches and tap **Restart the apps** (needs root), or reboot.
 
@@ -141,6 +143,8 @@ XSecurity bu özellikleri LSPosed hook'larıyla **orijinal** uygulamalarda açar
 - Hotspot günlük sınırında kesilmez (yalnızca uyarı)
 - Bu ay kullanılan veri bildirim panelinde ve Kontrol merkezinde
 - İsteğe bağlı: uygun sistem uygulamalarına Xiaomi'nin Wi-Fi/arka plan ağ kontrolleri; kurallar Güvenlik → Veri kullanımı ekranından seçilir
+- İsteğe bağlı: Çin ROM'da global ROM'un orijinal Vo LTE / Vo NR / Vo WiFi durum çubuğu simgeleri; gerçek IMS kaydına göre görünür (Sistem Arayüzü kapsamı)
+- İsteğe bağlı: SIM kartı ayarlarında Xiaomi'nin kendi **VoLTE kullan** anahtarı ve Wi-Fi araması **Ağ tercihleri**; yeniden başlatınca kaybolmaz (Telefon kapsamı)
 
 #### 📱 Uygulama bilgisi
 - Paket adı ve Aç / Yol / Varsayılan aç düğmeleri
@@ -162,7 +166,7 @@ XSecurity bu özellikleri LSPosed hook'larıyla **orijinal** uygulamalarda açar
 - İsteğe bağlı: uygulama kilidinde karışık PIN klavyesi
 - İsteğe bağlı: telefonun kilit ekranı için ayrı karışık PIN seçeneği; Sistem Arayüzü kapsamı gerekir. PIN doğrulaması ve acil arama/silme tuşları korunur
 
-Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve imza doğrulama seçenekleri için **System Framework** kapsamı (modern libxposed'da `system`) ve yeniden başlatma gerekir. Kapsam, modülün kullandığı dokuz sistem/uygulama hedefiyle sabittir; ilgisiz uygulamalar gizlenir. XSecurity açıldığında eksik hedefler istenir ve eski kapsam kayıtları kaldırılır. Derlemenin geçmesi her ROM'da çalıştığı anlamına gelmez; bulunamayan hedeflerde özgün davranış korunur ve günlüğe yazılır.
+Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve imza doğrulama seçenekleri için **System Framework** kapsamı (modern libxposed'da `system`) ve yeniden başlatma gerekir. Kapsam, modülün kullandığı on sistem/uygulama hedefiyle sabittir; ilgisiz uygulamalar gizlenir. XSecurity açıldığında eksik hedefler istenir ve eski kapsam kayıtları kaldırılır. Derlemenin geçmesi her ROM'da çalıştığı anlamına gelmez; bulunamayan hedeflerde özgün davranış korunur ve günlüğe yazılır.
 
 #### İmza doğrulamasını atlama ve kurulum seçenekleri
 - Varsayılan kapalı 12 ayrı seçenek: sürüm düşürme, özet doğrulama, kaynak tablosu hizalama, imza karşılaştırma, tam eşleşme, yüklü imza uyumluluğu, sistem gizli API'leri, shared UID, doğrulama ajanı, üretici engel listesi, kalıcı sistem uygulamalarını güncelleme ve SystemUI UID koruması
@@ -196,7 +200,7 @@ Xiaomi 15 Ultra'da Güvenlik 13.5.8 ve 13.6.5 ile test edildi.
 
 ### Kurulum
 1. XSecurity'yi kurun.
-2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Sistem Çerçevesi, Güvenlik, Pil ve performans, Güncelleyici, Joyose, Temalar, Guard Provider, Ayarlar ve Sistem Arayüzü.
+2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Sistem Çerçevesi, Güvenlik, Pil ve performans, Güncelleyici, Joyose, Temalar, Guard Provider, Ayarlar, Sistem Arayüzü ve Telefon.
 3. XSecurity'ye LSPosed iznini verin; yoksa uygulama "Etkin değil" gösterir.
 4. Anahtarlarınızı seçip **Uygulamaları yeniden başlat**'a dokunun (root gerekir) ya da telefonu yeniden başlatın.
 

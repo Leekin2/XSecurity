@@ -122,7 +122,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             val scope = service.scope.toSet()
             val supported = setOf("system", "com.miui.securitycenter", "com.miui.powerkeeper",
-                "com.android.updater", "com.xiaomi.joyose", "com.android.thememanager", "com.miui.guardprovider", "com.android.settings", "com.android.systemui")
+                "com.android.updater", "com.xiaomi.joyose", "com.android.thememanager", "com.miui.guardprovider", "com.android.settings", "com.android.systemui", "com.android.phone")
             val obsolete = scope - supported
             if (obsolete.isNotEmpty()) service.removeScope(obsolete.toList())
             val missing = supported.filter { it !in scope }

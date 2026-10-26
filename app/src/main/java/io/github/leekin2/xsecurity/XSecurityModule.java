@@ -13,6 +13,7 @@ public final class XSecurityModule extends XposedModule {
     private static final String GUARD = "com.miui.guardprovider";
     private static final String SETTINGS = "com.android.settings";
     private static final String SYSTEM_UI = "com.android.systemui";
+    private static final String PHONE = "com.android.phone";
     private final Hooks hooks = new Hooks(this);
     private String process;
 
@@ -46,6 +47,9 @@ public final class XSecurityModule extends XposedModule {
             new DarkModeSearchHooks(hooks, param.getClassLoader()).install();
         } else if (SYSTEM_UI.equals(name) && (process == null || process.equals(SYSTEM_UI))) {
             new LockscreenPinHooks(hooks, param.getClassLoader()).install();
+            new ImsIconHooks(hooks, param.getClassLoader()).install();
+        } else if (PHONE.equals(name) && (process == null || process.equals(PHONE))) {
+            new PhoneHooks(hooks, param.getClassLoader()).install();
         }
     }
 
