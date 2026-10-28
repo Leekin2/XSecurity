@@ -218,6 +218,14 @@ public class PackageManagerServiceUtils {
         verifications++; if(verifyError!=0)throw new PackageManagerException(verifyError);return true;}
     public static void checkDowngrade(AndroidPackage before,PackageInfoLite after)throws PackageManagerException{
         if(downgradeError!=0)throw new PackageManagerException(downgradeError);}
+    public static boolean canJoinSharedUserId(){return false;}
+}
+""",
+    "com/android/server/pm/ReconcilePackageUtils.java": """package com.android.server.pm;
+public class ReconcilePackageUtils {
+ private static final boolean ALLOW_NON_PRELOADS_SYSTEM_SHAREDUIDS=Boolean.getBoolean("fixture.allow_non_preloads");
+ public static boolean allow(){return ALLOW_NON_PRELOADS_SYSTEM_SHAREDUIDS;}
+ public static void reconcilePackages(){}
 }
 """,
     "io/github/leekin2/xsecurity/RegressionMain.java": r"""package io.github.leekin2.xsecurity;
@@ -268,6 +276,14 @@ public class RegressionMain {
         system.flags=1;check(Boolean.TRUE.equals(core.invoke(hidden,system)),"system hidden API choice");
         system.flags=128;check(Boolean.TRUE.equals(core.invoke(hidden,system)),"updated-system hidden API choice");
         check(!CorePatchHooks.inInstallFlow(),"ordinary code and TLS do not inherit package-install context");
+        switches.put(Features.CP_SHARED,true);
+        Hooks sharedHooks=new Hooks();new CorePatchHooks(sharedHooks,cl).install();
+        check(sharedHooks.errors.isEmpty(),"immutable preload policy does not abort shared-user hooks");
+        check(!ReconcilePackageUtils.allow(),"final preload policy remains unchanged");
+        Method ancestor=SigningDetails.class.getMethod("hasCommonAncestor",SigningDetails.class);
+        check(Boolean.FALSE.equals(sharedHooks.invoke(ancestor,signer,signer)),"ancestor check preserved outside installation");
+        check(Boolean.TRUE.equals(InstallPackageHelper.installationFlow(()->sharedHooks.invoke(ancestor,signer,signer))),"installer shared-user ancestry hook retained");
+        switches.put(Features.CP_SHARED,false);
         switches.put(Features.CP_VERIFY,true);switches.put(Features.CP_PREVIOUS,true);
         Hooks integrity=new Hooks();new CorePatchHooks(integrity,cl).install();
         Method equal=java.security.MessageDigest.class.getMethod("isEqual",byte[].class,byte[].class);
@@ -368,17 +384,23 @@ public class RegressionMain {
 
 
 def main():
+    fixtures = dict(FIXTURES)
+    fixtures['android/content/SharedPreferences.java'] = fixtures['android/content/SharedPreferences.java'].replace(
+        'boolean getBoolean(String key, boolean fallback);',
+        'boolean getBoolean(String key, boolean fallback); default java.util.Set<String> getStringSet(String k, java.util.Set<String> d){return d;}')
+    fixtures['io/github/leekin2/xsecurity/Hooks.java'] = fixtures['io/github/leekin2/xsecurity/Hooks.java'].replace(
+        'void deoptimize(Executable m){}', 'void deoptimize(Executable m){} boolean deoptimizeReported(Executable m){return true;}')
     with tempfile.TemporaryDirectory(prefix="xsecurity-hook-tests-") as directory:
         temp = Path(directory)
         sources = []
-        for name, source in FIXTURES.items():
+        for name, source in fixtures.items():
             path = temp / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(source, encoding="utf-8")
             sources.append(str(path))
         sources.extend(str(PRODUCTION / name) for name in (
             "Features.java", "DisplayPolicyHooks.java", "SecurityBehaviorHooks.java", "NetworkControlHooks.java",
-            "CorePatchHooks.java", "ApkIntegrityHooks.java", "SharedUidStateHooks.java"))
+            "CorePatchHooks.java", "ApkIntegrityHooks.java", "SharedUidStateHooks.java", "PersistentUpdateHooks.java", "SystemUiUidHooks.java"))
         classes = temp / "classes"
         classes.mkdir()
         subprocess.run(["javac", "-encoding", "UTF-8", "-d", str(classes), *sources], check=True)
@@ -387,7 +409,7 @@ def main():
     # A toggle without its text/feature registration is invisible or crashes one UI language.
     texts = (ROOT / "app/src/main/kotlin/io/github/leekin2/xsecurity/ui/ExtensionTexts.kt").read_text(encoding="utf-8")
     entries = re.findall(r"F\.([A-Z_]+) to Line\(", texts)
-    assert len(set(entries)) == 4 and all(entries.count(key) == 5 for key in set(entries))
+    assert entries and all(entries.count(key) == 5 for key in set(entries))
     model = (ROOT / "app/src/main/kotlin/io/github/leekin2/xsecurity/ui/Model.kt").read_text(encoding="utf-8")
     for key in set(entries):
         assert f"Item(F.{key}," in model, key
@@ -395,12 +417,12 @@ def main():
     scope = (ROOT / "app/src/main/resources/META-INF/xposed/scope.list").read_text().splitlines()
     assert "staticScope=true" in config and "system" in scope and "android" not in scope
     core_texts = (ROOT / "app/src/main/kotlin/io/github/leekin2/xsecurity/ui/CorePatchTexts.kt").read_text(encoding="utf-8")
-    assert core_texts.count("Line(") == 50
+    assert core_texts.count('Line(') == 12 * 5
     assert 'F.CORE_PATCH.map' in model
     for filename in ("DeveloperInstallHooks.java", "DeveloperInstallPolicy.java", "BackgroundCleanerHooks.java", "AutostartGrantHooks.java"):
         assert not (PRODUCTION / filename).exists(), filename
     assert 'Section("background"' not in model and 'Section("developer"' not in model
-    print("PASS: ten Core Patch options, five languages, retired code deleted, fixed system scope")
+    print("PASS: twelve install options, five languages, retired code deleted, fixed system scope")
 
 
 if __name__ == "__main__":

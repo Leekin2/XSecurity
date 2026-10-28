@@ -8,3 +8,5 @@ com.miui.guardprovider
 com.android.settings
 com.android.systemui
 com.android.phone
+com.android.mms
+com.miui.home

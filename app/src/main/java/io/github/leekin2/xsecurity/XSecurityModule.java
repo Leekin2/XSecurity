@@ -50,6 +50,10 @@ public final class XSecurityModule extends XposedModule {
             new ImsIconHooks(hooks, param.getClassLoader()).install();
         } else if (PHONE.equals(name) && (process == null || process.equals(PHONE))) {
             new PhoneHooks(hooks, param.getClassLoader()).install();
+        } else if ("com.android.mms".equals(name) && (process == null || process.equals(name))) {
+            new MessageHooks(hooks, param.getClassLoader()).install(info.sourceDir, info.dataDir);
+        } else if ("com.miui.home".equals(name) && (process == null || process.equals(name))) {
+            new HomeHooks(hooks, param.getClassLoader()).install();
         }
     }
 

@@ -154,7 +154,11 @@ final class CorePatchHooks {
         try {
             Field allow = reconcile.getDeclaredField("ALLOW_NON_PRELOADS_SYSTEM_SHAREDUIDS");
             allow.setAccessible(true);
-            allow.setBoolean(null, true);
+            if (java.lang.reflect.Modifier.isFinal(allow.getModifiers())) {
+                hooks.info("Core Patch shared UID: immutable preload policy retained; signer/member hooks remain active");
+            } else {
+                allow.setBoolean(null, true);
+            }
         } catch (NoSuchFieldException absent) { hooks.info("Core Patch shared UID preload flag not present on this ROM"); }
         for (Method method : reconcile.getDeclaredMethods()) {
             if (method.getName().equals("reconcilePackages")) hooks.deoptimize(method);

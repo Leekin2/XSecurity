@@ -183,11 +183,13 @@ private fun SectionCard(section: Section, state: UiState, t: Texts, actions: Act
                     val checked = state.values[item.key] == true
                     ListItem(
                         headlineContent = { Text(line?.title ?: item.key) },
-                        supportingContent = line?.summary?.let { { Text(it) } },
+                        supportingContent = {
+                            Text(if (featureAvailable(state, item.key)) line?.summary ?: "" else nativeLauncherHint(state.language))
+                        },
                         leadingContent = { Icon(item.icon, null, tint = section.color) },
-                        trailingContent = { Switch(checked, { actions.onChange(item.key, it) }, enabled = state.connected != false) },
+                        trailingContent = { Switch(checked, { actions.onChange(item.key, it) }, enabled = featureCanChange(state, item.key)) },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.clickable(enabled = state.connected != false) { actions.onChange(item.key, !checked) }
+                        modifier = Modifier.clickable(enabled = featureCanChange(state, item.key)) { actions.onChange(item.key, !checked) }
                     )
                     if (item.key == F.CLIPBOARD_WHITELIST && checked) {
                         val pick = t.features[PICK_CLIPBOARD]

@@ -55,7 +55,8 @@ final class SecurityHooks {
         if (in(here, MAIN | REMOTE) && Features.enabled(Features.WARNINGS)) run("car accident warning", this::carAccident);
         if (in(here, MAIN) && Features.enabled(Features.WARNINGS)) run("earthquake alert", this::earthquakeAlert);
         if (in(here, MAIN) && Features.enabled(Features.DOCK)) run("sidebar 50 apps", this::dockLimit);
-        if (in(here, MAIN) && Features.enabled(Features.APP_INFO)) run("app info actions", this::appInfoActions);
+        if (in(here, MAIN) && (Features.enabled(Features.APP_INFO) || Features.enabled(Features.APP_ICON_LAUNCH)))
+            run("app info actions", this::appInfoActions);
         if (in(here, MAIN) && Features.enabled(Features.APP_INFO)) run("more app details", () -> new SecurityExtraHooks(hooks, loader).moreAppDetails());
         if (in(here, MAIN) && Features.enabled(Features.APPLOCK_SCRAMBLE)) run("app lock scramble", () -> new SecurityExtraHooks(hooks, loader).appLockScramble());
         if (in(here, MAIN | REMOTE | POWER_PROC) && Features.enabled(Features.LOW_BATTERY_QUIET)) run("quiet low battery", () -> new SecurityExtraHooks(hooks, loader).quietLowBattery());
@@ -63,6 +64,13 @@ final class SecurityHooks {
         if (in(here, REMOTE) && Features.enabled(Features.NET_HOTSPOT_KEEP)) run("keep hotspot", () -> new SecurityExtraHooks(hooks, loader).keepHotspot());
         if (in(here, MAIN) && Features.enabled(Features.NET_APP_CONTROLS)) run("per-app network controls", () -> new NetworkControlHooks(hooks, loader).install());
         if (in(here, BOOT) && Features.enabled(Features.SIM_SUCCESS_DIALOG_OFF)) run("SIM verification dialog", this::simSuccessDialog);
+        if (in(here, MAIN | REMOTE) && Features.enabled(Features.POWER_SAVE_BOOT)) {
+            try (DexTargets targets = new DexTargets(loader, apkPath, dataDir)) {
+                run("Battery Saver boot preference", () -> new BatterySaverBootHooks(hooks).install(targets));
+            } catch (Throwable failure) {
+                hooks.error("Battery Saver boot scan unavailable; stock behaviour retained", failure);
+            }
+        }
         if (in(here, MAIN | REMOTE | POWER_PROC)) {
             try (DexTargets targets = new DexTargets(loader, apkPath, dataDir)) {
                 SecurityBehaviorHooks behavior = new SecurityBehaviorHooks(hooks);
@@ -232,6 +240,7 @@ final class SecurityHooks {
             }
             return result;
         });
+        if (!Features.enabled(Features.APP_INFO)) return;
         // Bottom bar: the stock Disable item (id 6) and the top Share item are hidden for many apps
         // (Disable for most user apps, Share for system apps and split APKs). Both stay visible here
         // and both are handled by XSecurity, so they work for every app.
@@ -478,7 +487,7 @@ final class SecurityHooks {
     }
 
     /** Header layout: [icon | label, version] → [icon | label, version, package] over a button row. */
-    private static void decorateHeader(android.widget.TextView version) {
+    private void decorateHeader(android.widget.TextView version) {
         android.view.ViewGroup column = (android.view.ViewGroup) version.getParent();
         if (column == null || !(column.getParent() instanceof android.widget.LinearLayout)) return;
         android.widget.LinearLayout root = (android.widget.LinearLayout) column.getParent();
@@ -489,12 +498,24 @@ final class SecurityHooks {
         android.app.Activity host = activityOf(root.getContext());
         String pkg = packageOf(host);
         if (host == null || pkg == null) return;
-        Object done = root.getTag(0x58534545);
-        if (pkg.equals(done)) return;
+        bindAppIcon(root, host, pkg);
+        boolean details = Features.enabled(Features.APP_INFO);
+        boolean buttons = details && Features.enabled(Features.APP_INFO_BUTTONS);
+        HeaderStamp stamp = new HeaderStamp(pkg, details, buttons);
+        // Preference rebinds must not rebuild the views or toggle the stock row visible/hidden.
+        // Doing so schedules another bind, cancels in-flight touches and repeats indefinitely.
+        if (stamp.equals(root.getTag(0x58534545))) return;
         android.view.View oldPackage = column.findViewWithTag("xsecurity_pkg");
         if (oldPackage != null) column.removeView(oldPackage);
         android.view.View oldRow = root.findViewWithTag("xsecurity_actions");
         if (oldRow != null) root.removeView(oldRow);
+
+        if (!details) {
+            root.setTag(0x58534545, stamp);
+            headerActions.remove(host);
+            refreshDefaultRow.accept(host);
+            return;
+        }
 
         android.widget.TextView packageLine = new android.widget.TextView(host);
         packageLine.setTag("xsecurity_pkg");
@@ -507,6 +528,12 @@ final class SecurityHooks {
         column.addView(packageLine, column.indexOfChild(version) + 1, new android.widget.LinearLayout.LayoutParams(
                 android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        if (!buttons) {
+            root.setTag(0x58534545, stamp);
+            headerActions.remove(host);
+            refreshDefaultRow.accept(host);
+            return;
+        }
         if (root.getOrientation() == android.widget.LinearLayout.HORIZONTAL) {
             // Move icon and texts into their own line so the buttons can sit under them.
             android.widget.LinearLayout top = new android.widget.LinearLayout(host);
@@ -526,7 +553,28 @@ final class SecurityHooks {
         row.setTag("xsecurity_actions");
         root.addView(row, new android.widget.LinearLayout.LayoutParams(
                 android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
-        root.setTag(0x58534545, pkg);
+        root.setTag(0x58534545, stamp);
+        headerActions.put(host, pkg);
+        refreshDefaultRow.accept(host);
+    }
+
+    private record HeaderStamp(String packageName, boolean details, boolean buttons) { }
+
+    private final java.util.Map<android.app.Activity, String> headerActions = new java.util.WeakHashMap<>();
+    private final java.util.Map<android.app.Activity, java.lang.ref.WeakReference<Object>> detailFragments = new java.util.WeakHashMap<>();
+    private java.util.function.Consumer<android.app.Activity> refreshDefaultRow = host -> {};
+
+    private static void bindAppIcon(android.view.ViewGroup root, android.app.Activity host, String pkg) {
+        if (!Features.enabled(Features.APP_ICON_LAUNCH)) return;
+        for (String name : new String[]{"app_manager_details_appicon", "app_manager_details_app_icon", "app_icon"}) {
+            int id = host.getResources().getIdentifier(name, "id", host.getPackageName());
+            android.view.View icon = id == 0 ? null : root.findViewById(id);
+            if (!(icon instanceof android.widget.ImageView)) continue;
+            icon.setOnClickListener(v -> {
+                if (Features.enabled(Features.APP_ICON_LAUNCH)) launchApp(host, pkg, "tr".equals(Locale.getDefault().getLanguage()));
+            });
+            return;
+        }
     }
 
     private static String packageOf(android.app.Activity host) {
@@ -969,6 +1017,9 @@ final class SecurityHooks {
         hooks.install(fragment.getMethod("onResume"), chain -> {
             Object result = chain.proceed();
             Object self = chain.getThisObject();
+            // onResume can be inherited. A hook on the base method also sees other
+            // preference fragments; never call ChargeProtectFragment methods on those.
+            if (!fragment.isInstance(self) || !Features.enabled(Features.BATTERY_HEALTH)) return result;
             Context ctx = (Context) context.invoke(self);
             if (ctx == null) return result;
             Context app = ctx.getApplicationContext();
@@ -1055,31 +1106,54 @@ final class SecurityHooks {
         Method getParent = preference.getMethod("getParent");
         Method getCount = group.getMethod("getPreferenceCount");
         Method getChild = group.getMethod("getPreference", int.class);
+        Method activity = fragment.getMethod("getActivity");
+        java.util.Map<Object, Boolean> hidden = new java.util.WeakHashMap<>();
+        refreshDefaultRow = host -> {
+            try {
+                java.lang.ref.WeakReference<Object> reference = detailFragments.get(host);
+                Object self = reference == null ? null : reference.get();
+                if (self == null) return;
+                Object row = findPreference.invoke(self, "app_default_pref");
+                if (row == null) return;
+                Object parent = getParent.invoke(row);
+                boolean replace = Features.enabled(Features.APP_INFO) && Features.enabled(Features.APP_INFO_BUTTONS)
+                        && packageOf(host) != null && packageOf(host).equals(headerActions.get(host));
+                if (replace) {
+                    hidden.putIfAbsent(row, Boolean.TRUE.equals(isVisible.invoke(row)));
+                    setVisible.invoke(row, false);
+                    if (category.isInstance(parent)) {
+                        boolean any = false;
+                        for (int i = 0; i < (Integer) getCount.invoke(parent); i++) {
+                            if (Boolean.TRUE.equals(isVisible.invoke(getChild.invoke(parent, i)))) { any = true; break; }
+                        }
+                        if (!any) {
+                            hidden.putIfAbsent(parent, Boolean.TRUE.equals(isVisible.invoke(parent)));
+                            setVisible.invoke(parent, false);
+                        } else {
+                            Boolean prior = hidden.remove(parent);
+                            if (prior != null) setVisible.invoke(parent, prior);
+                        }
+                    }
+                } else {
+                    Boolean prior = hidden.remove(row);
+                    if (prior != null) setVisible.invoke(row, prior);
+                    if (parent != null) {
+                        prior = hidden.remove(parent);
+                        if (prior != null) setVisible.invoke(parent, prior);
+                    }
+                }
+            } catch (Throwable failure) { hooks.error("app default row visibility", failure); }
+        };
         int loaded = 0;
         for (Method method : targets.usingStrings("app_default_loaded", "void", "enter_way")) {
             if (method.getDeclaringClass() != fragment) continue;
             loaded++;
             hooks.install(method, chain -> {
                 Object result = chain.proceed();
-                try {
-                    Object row = findPreference.invoke(chain.getThisObject(), "app_default_pref");
-                    if (row == null) return result;
-                    setVisible.invoke(row, false);
-                    Object parent = getParent.invoke(row);
-                    // Avoid an empty "Advanced settings" heading; keep other visible settings.
-                    if (category.isInstance(parent)) {
-                        int count = (Integer) getCount.invoke(parent);
-                        boolean hasVisibleChild = false;
-                        for (int i = 0; i < count; i++) {
-                            if (Boolean.TRUE.equals(isVisible.invoke(getChild.invoke(parent, i)))) {
-                                hasVisibleChild = true;
-                                break;
-                            }
-                        }
-                        if (!hasVisibleChild) setVisible.invoke(parent, false);
-                    }
-                } catch (Throwable failure) {
-                    hooks.error("hide duplicate default row", failure);
+                android.app.Activity host = (android.app.Activity) activity.invoke(chain.getThisObject());
+                if (host != null) {
+                    detailFragments.put(host, new java.lang.ref.WeakReference<>(chain.getThisObject()));
+                    refreshDefaultRow.accept(host);
                 }
                 return result;
             });

@@ -1,6 +1,14 @@
 package io.github.leekin2.xsecurity.ui
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.PhoneAndroid
+import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.ReportOff
+import androidx.compose.material.icons.rounded.Sms
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.BatteryStd
 import androidx.compose.material.icons.rounded.Bolt
@@ -95,6 +103,7 @@ val SECTIONS = listOf(
         Item(F.POWER_EXTRAS, Icons.Rounded.PowerSettingsNew),
         Item(F.POWER_SAVE_REFRESH, Icons.Rounded.Speed),
         Item(F.POWER_SAVE_BRIGHTNESS, Icons.Rounded.Tune),
+        Item(F.POWER_SAVE_BOOT, Icons.Rounded.PowerSettingsNew),
         Item(F.LOW_BATTERY_QUIET, Icons.Rounded.NotificationsOff))),
     Section("media", Icons.Rounded.Movie, Color(0xFFE0558E), listOf(
         Item(F.VIDEO_TOOLBOX, Icons.Rounded.Movie),
@@ -102,6 +111,8 @@ val SECTIONS = listOf(
     Section("system", Icons.Rounded.Info, Color(0xFF6E7787), listOf(
         Item(F.FLAG_SECURE, Icons.Rounded.Screenshot),
         Item(F.APP_INFO, Icons.Rounded.Info),
+        Item(F.APP_INFO_BUTTONS, Icons.Rounded.TouchApp),
+        Item(F.APP_ICON_LAUNCH, Icons.Rounded.TouchApp),
         Item(F.TOOLBOX, Icons.Rounded.Crop),
         Item(F.DOCK, Icons.Rounded.ViewSidebar),
         Item(F.PERM_NO_WAIT, Icons.Rounded.HourglassDisabled),
@@ -117,6 +128,15 @@ val SECTIONS = listOf(
         Item(F.DARK_MODE_ALL_APPS, Icons.Rounded.DarkMode),
         Item(F.CLIPBOARD_WHITELIST, Icons.Rounded.ContentPaste),
         Item(F.APPLIST_UPLOAD_OFF, Icons.Rounded.CloudOff))),
+    Section("messages", Icons.Rounded.Sms, Color(0xFF2E9C86), listOf(
+        Item(F.MMS_ADS, Icons.Rounded.Block),
+        Item(F.MMS_FRAUD, Icons.Rounded.Warning),
+        Item(F.MMS_OVERSEAS, Icons.Rounded.Public),
+        Item(F.MMS_OLD_DEVICE, Icons.Rounded.PhoneAndroid),
+        Item(F.MMS_COPY_CODE, Icons.Rounded.ContentCopy))),
+    Section("launcher", Icons.Rounded.Home, Color(0xFF658BDA), listOf(
+        Item(F.HOME_PRESTART, Icons.Rounded.Speed),
+        Item(F.HOME_REPORT, Icons.Rounded.ReportOff))),
     Section("store", Icons.Rounded.Storefront, Color(0xFF1FA2A6), listOf(
         Item(F.STORE_FORCE_CHOOSER, Icons.Rounded.Storefront),
         Item(F.STORE_GETAPPS_MINI, Icons.Rounded.PictureInPictureAlt))),
@@ -145,7 +165,15 @@ data class UiState(
     val iconHidden: Boolean = false,
     /** How many apps are on the background clipboard list. */
     val clipboardApps: Int = 0,
+    /** Native-only HyperOS launchers do not run the Java launcher hook entry. */
+    val nativeLauncher: Boolean = false,
 )
+
+fun featureAvailable(state: UiState, key: String): Boolean =
+    !state.nativeLauncher || key !in setOf(F.HOME_PRESTART, F.HOME_REPORT)
+
+fun featureCanChange(state: UiState, key: String): Boolean =
+    state.connected != false && (featureAvailable(state, key) || state.values[key] == true)
 
 /** Everything the screens can ask for. */
 class Actions(

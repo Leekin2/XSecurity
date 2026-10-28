@@ -54,8 +54,12 @@ class MainActivity : ComponentActivity() {
         // First run follows the system language; afterwards the user's choice wins.
         val language = ui.getString("language", null)?.let(AppLanguage::of) ?: AppLanguage.forSystem(Locale.getDefault().language)
         state = state.copy(
-            values = Features.ALL.associateWith { local.getBoolean(it, Features.defaultValue(it)) },
+            values = Features.ALL.associateWith { Features.read(local, it) },
             language = language,
+            nativeLauncher = runCatching {
+                val info = packageManager.getApplicationInfo("com.miui.home", 0)
+                info.flags and android.content.pm.ApplicationInfo.FLAG_HAS_CODE == 0
+            }.getOrDefault(false),
             look = Look(ui.getBoolean("hyper", true), ui.getInt("theme", 0), ui.getBoolean("monet", false), ui.getBoolean("blur", false)),
             iconHidden = iconHidden(),
             clipboardApps = local.getStringSet(Features.CLIPBOARD_APPS, emptySet())?.size ?: 0
@@ -92,7 +96,7 @@ class MainActivity : ComponentActivity() {
                 "ims_icon_support", "ims_restart_pending", "gallery_google_backup")
             remote.edit().apply { retired.forEach { remove(it) } }.apply()
             local.edit().apply { retired.forEach { remove(it) } }.apply()
-            val values = Features.ALL.associateWith { remote.getBoolean(it, Features.defaultValue(it)) }
+            val values = Features.ALL.associateWith { Features.read(remote, it) }
             local.edit().apply { values.forEach { (k, v) -> putBoolean(k, v) } }.apply()
             state = state.copy(values = values)
         }
@@ -106,15 +110,20 @@ class MainActivity : ComponentActivity() {
      * stored values win from here on. Keys the user has already set are left untouched.
      */
     private fun materializeDefaults(remote: SharedPreferences) {
-        if (remote.getBoolean(MATERIALIZED, false)) return
-        // An install that has run before has stored switches, or chose a language/look.
-        val hadRun = Features.ALL.any { remote.contains(it) || local.contains(it) } ||
-            ui.all.isNotEmpty()
-        val editor = remote.edit()
-        for (key in Features.ALL) {
-            if (!remote.contains(key)) editor.putBoolean(key, if (hadRun) Features.legacyDefault(key) else false)
+        if (!remote.getBoolean(MATERIALIZED, false)) {
+            val hadRun = Features.ALL.any { remote.contains(it) || local.contains(it) } || ui.all.isNotEmpty()
+            val editor = remote.edit()
+            for (key in Features.ALL) {
+                if (key != Features.APP_INFO_BUTTONS && !remote.contains(key)) {
+                    editor.putBoolean(key, if (hadRun) Features.legacyDefault(key) else false)
+                }
+            }
+            editor.putBoolean(MATERIALIZED, true).apply()
         }
-        editor.putBoolean(MATERIALIZED, true).apply()
+        // Inherit the effective master after freezing old defaults, while retaining explicit choices.
+        if (!remote.contains(Features.APP_INFO_BUTTONS)) {
+            remote.edit().putBoolean(Features.APP_INFO_BUTTONS, remote.getBoolean(Features.APP_INFO, false)).apply()
+        }
     }
 
     /** Keep the fixed module targets selected; remove obsolete or unrelated scope entries. */
@@ -122,7 +131,7 @@ class MainActivity : ComponentActivity() {
         runCatching {
             val scope = service.scope.toSet()
             val supported = setOf("system", "com.miui.securitycenter", "com.miui.powerkeeper",
-                "com.android.updater", "com.xiaomi.joyose", "com.android.thememanager", "com.miui.guardprovider", "com.android.settings", "com.android.systemui", "com.android.phone")
+                "com.android.updater", "com.xiaomi.joyose", "com.android.thememanager", "com.miui.guardprovider", "com.android.settings", "com.android.systemui", "com.android.phone", "com.android.mms", "com.miui.home")
             val obsolete = scope - supported
             if (obsolete.isNotEmpty()) service.removeScope(obsolete.toList())
             val missing = supported.filter { it !in scope }
@@ -138,6 +147,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun change(key: String, value: Boolean) {
+        if (value && !io.github.leekin2.xsecurity.ui.featureAvailable(state, key)) {
+            Toast.makeText(this, io.github.leekin2.xsecurity.ui.nativeLauncherHint(state.language), Toast.LENGTH_LONG).show()
+            return
+        }
         val remote = preferences
         if (remote == null) {
             Toast.makeText(this, texts.notConnected, Toast.LENGTH_SHORT).show()
@@ -229,7 +242,7 @@ class MainActivity : ComponentActivity() {
             // Root is proven by "id -u" printing 0; a process that is already gone is not a failure.
             // Processes are found by exact name: "pkill -f" would also match (and kill) this shell.
             val names = "com.miui.securitycenter com.miui.securitycenter.remote com.miui.securitycenter.power " +
-                "com.miui.securitycenter:ui com.miui.securitycenter.bootaware com.miui.powerkeeper com.xiaomi.joyose com.android.updater com.android.thememanager com.miui.guardprovider com.android.settings"
+                "com.miui.securitycenter:ui com.miui.securitycenter.bootaware com.miui.powerkeeper com.xiaomi.joyose com.android.updater com.android.thememanager com.miui.guardprovider com.android.settings com.android.mms com.miui.home"
             val ok = runCatching {
                 val process = ProcessBuilder("su", "-c",
                     "id -u; am force-stop com.miui.securitycenter; am force-stop com.android.updater; " +

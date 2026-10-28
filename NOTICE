@@ -19,6 +19,14 @@ HyperCeiler (https://github.com/ReChronoRain/HyperCeiler)
       - DarkModeHooks.java
           from rules/systemframework/display/AllDarkMode.kt
           (itself derived from SetoHook by SetoSkins)
+      - MessageHooks.java
+          adapted from rules/mms/DisableAd.java, DisableRiskTip.java,
+          ImOldDevice.java and AutoCopyVerificationCode.kt (upstream HyperStar);
+          selected risk types are handled independently, numeric codes are marked
+          sensitive and never logged or persisted
+      - HomeHooks.java
+          adapted from rules/home/DisablePrestart.java and title/HideReportText.java;
+          installer-name override is restricted to the uninstall dialog call
       - LockscreenPinHooks.java
           adapted from rules/systemui/lockscreen/ScramblePIN.java;
           verified phone layout matrices and rollback for complete digit views

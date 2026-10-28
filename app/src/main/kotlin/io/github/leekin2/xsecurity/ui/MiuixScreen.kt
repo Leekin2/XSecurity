@@ -204,9 +204,10 @@ private fun SectionCard(section: Section, state: UiState, t: Texts, actions: Act
                     SwitchPreference(
                         checked = state.values[item.key] == true,
                         onCheckedChange = { actions.onChange(item.key, it) },
-                        title = line?.title ?: item.key, summary = line?.summary,
+                        title = line?.title ?: item.key,
+                        summary = if (featureAvailable(state, item.key)) line?.summary else nativeLauncherHint(state.language),
                         startAction = { RowIcon(item.icon, section.color) },
-                        enabled = state.connected != false
+                        enabled = featureCanChange(state, item.key)
                     )
                     if (item.key == F.CLIPBOARD_WHITELIST && state.values[item.key] == true) {
                         val pick = t.features[PICK_CLIPBOARD]

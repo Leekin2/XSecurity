@@ -43,6 +43,16 @@ XSecurity enables these features on the **stock** apps with LSPosed hooks. No sy
 - Open in Play Store in additional app details; falls back to the Play website if the app is unavailable
 - A chain icon for Open by default in the header, with the duplicate lower row removed
 
+- Separate **App info buttons** switch controls Open / Path / Open by default, while the main action switch retains package details and menu actions. Existing installs inherit their previous header setting.
+- Optional **Tap app icon to launch** works independently of the header buttons. Turning off header buttons retains the stock Open by default row.
+
+### Messages and Launcher (optional)
+- Xiaomi Messages: hide promotional controls, separately hide fraud or overseas risk labels, optionally select the newer interface, and copy explicitly marked numeric 4–8 digit verification codes. Messages 18's notification factory and broadcast PendingIntent path are supported. Risk-warning options reduce the warnings you see and default to off. Codes are marked sensitive, never logged or saved to files.
+- Xiaomi Launcher: disable app prestart checks and hide the uninstall-dialog report option without changing the system property store or the actual package installer identity.
+- Requires Messages (`com.android.mms`) / Launcher (`com.miui.home`) scope and restarting the affected app. Supports the matching OEM methods only; unavailable targets are logged and retain stock behavior. Google Messages, other launchers and native-only OEM paths are not covered. New options are off by default; runtime testing on the target ROM is still required.
+- Native-only Launchers show an unavailable explanation for the two Launcher options. The installed HyperOS 4 Launcher 8.01.02.8593 cannot use these Java hooks; another ROM's native patch is not included.
+- Optional **Keep Battery Saver at boot** honors the existing **Turn off when charged** preference when Security's BootReceiver requests its extra saver-close check. It does not enable Saver itself or intercept manual changes and schedules. Requires Security scope and restarting the relevant process; a real reboot test remains necessary.
+
 ### ⚙️ System
 - Full global Toolbox, 50 apps in the sidebar, no 5-10 second permission countdown
 - Video toolbox (theatre mode, Dolby, MEMC, AI picture, new video box) that stays on when the phone warms up
@@ -56,7 +66,7 @@ XSecurity enables these features on the **stock** apps with LSPosed hooks. No sy
 - Optional: shuffled app lock PIN pad
 - Optional: a separate shuffled phone lock-screen PIN keypad, requiring System UI scope; digit verification and emergency/delete controls are preserved
 
-The new optional switches default to off. Framework display/capture and signature-verification changes require **System Framework** scope (`system` in modern libxposed) and a reboot. Scope selection is fixed to the module's ten system/app targets; unrelated apps are hidden. Opening XSecurity requests missing targets and removes obsolete scope entries. A compiled hook is not proof that every ROM implements its target; unavailable targets keep stock behaviour and are logged.
+The new optional switches default to off. Framework display/capture and signature-verification changes require **System Framework** scope (`system` in modern libxposed) and a reboot. Scope selection is fixed to the module's twelve system/app targets; unrelated apps are hidden. Opening XSecurity requests missing targets and removes obsolete scope entries. A compiled hook is not proof that every ROM implements its target; unavailable targets keep stock behaviour and are logged.
 
 ### Signature verification bypass and installation options
 - Twelve separate, off-by-default switches: downgrade, digest verification, resource-table alignment, signer comparison, exact matching, installed-signature compatibility, system hidden APIs, shared UID, verification agent, vendor blocklist, persistent system app updates and SystemUI UID preservation
@@ -99,7 +109,7 @@ Tested on the Xiaomi 15 Ultra with Security 13.5.8 and 13.6.5.
 
 ## Install
 1. Install XSecurity.
-2. Enable it in LSPosed and tick the scope: System Framework, Security, Battery and performance, Updater, Joyose, Themes, Guard Provider, Settings, System UI and Phone.
+2. Enable it in LSPosed and tick the scope: System Framework, Security, Battery and performance, Updater, Joyose, Themes, Guard Provider, Settings, System UI, Phone, Messages and Launcher.
 3. Grant XSecurity its LSPosed permission, otherwise the app shows "Not active".
 4. Choose your switches and tap **Restart the apps** (needs root), or reboot.
 
@@ -153,6 +163,16 @@ XSecurity bu özellikleri LSPosed hook'larıyla **orijinal** uygulamalarda açar
 - Ek uygulama ayrıntılarında Play Store’da aç; mağaza uygulaması yoksa Play web sayfası açılır
 - Üstte zincir simgeli Varsayılan aç düğmesi; alttaki tekrarlanan satır kaldırıldı
 
+- Ayrı **Uygulama bilgisi düğmeleri** anahtarı Aç / Yol / Varsayılan aç satırını yönetir; ana seçenek paket ayrıntılarını ve menü işlemlerini korur. Güncellemede eski düğme tercihi devralınır.
+- İsteğe bağlı **Uygulama simgesine dokunarak aç**, üst düğmelerden bağımsızdır. Düğmeler kapatıldığında özgün Varsayılan aç satırı korunur.
+
+#### Mesajlar ve Başlatıcı (isteğe bağlı)
+- Xiaomi Mesajlar: tanıtım öğelerini gizleme, dolandırıcılık/yurt dışı risk etiketlerini ayrı yönetme, isteğe bağlı yeni arayüz seçimi ve açıkça doğrulama kodu olarak işaretlenmiş 4–8 haneli kodları kopyalama. Mesajlar 18’in bildirim oluşturucusu ve broadcast PendingIntent yolu desteklenir. Risk uyarısı seçenekleri görünen uyarıları azaltır ve varsayılan kapalıdır. Kodlar hassas işaretlenir, günlüğe veya dosyaya yazılmaz.
+- Xiaomi Başlatıcı: sistem özelliklerini veya paketin gerçek yükleme kaynağını değiştirmeden ön başlatma kontrollerini kapatma ve kaldırma penceresindeki rapor seçeneğini gizleme.
+- Mesajlar (`com.android.mms`) / Başlatıcı (`com.miui.home`) kapsamı ve ilgili uygulamanın yeniden başlatılması gerekir. Yalnızca eşleşen OEM metotları desteklenir; bulunmayan hedefler günlüğe yazılır ve özgün davranış korunur. Google Mesajlar, diğer başlatıcılar ve yalnızca native kod kullanan OEM yolları kapsam dışındadır. Yeni seçenekler varsayılan kapalıdır; hedef ROM üzerinde çalışma testi henüz gerekir.
+- Yerel kod kullanan Başlatıcılarda bu iki seçenek için desteklenmediğini açıklayan bilgi gösterilir. Telefondaki HyperOS 4 Başlatıcı 8.01.02.8593 bu Java hook’larını çalıştırmaz; başka ROM’a ait yerel yama dahil edilmez.
+- İsteğe bağlı **Pil tasarrufunu açılışta koru**, Güvenlik’in BootReceiver içindeki ek kapatma denetimini mevcut **Şarj olduğunda kapat** tercihine bağlar. Tasarrufu kendiliğinden açmaz; elle değişiklikleri ve zamanlamaları engellemez. Güvenlik kapsamı ve ilgili sürecin yeniden başlatılması gerekir; gerçek yeniden başlatma testi ayrıca yapılmalıdır.
+
 #### ⚙️ Sistem
 - Global sürümdeki tam Araç kutusu, yan çubukta 50 uygulama, 5-10 saniyelik izin geri sayımı yok
 - Telefon ısınınca kapanmayan video araç kutusu (sinema modu, Dolby, MEMC, yapay zekâ görüntü, yeni video kutusu)
@@ -166,7 +186,7 @@ XSecurity bu özellikleri LSPosed hook'larıyla **orijinal** uygulamalarda açar
 - İsteğe bağlı: uygulama kilidinde karışık PIN klavyesi
 - İsteğe bağlı: telefonun kilit ekranı için ayrı karışık PIN seçeneği; Sistem Arayüzü kapsamı gerekir. PIN doğrulaması ve acil arama/silme tuşları korunur
 
-Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve imza doğrulama seçenekleri için **System Framework** kapsamı (modern libxposed'da `system`) ve yeniden başlatma gerekir. Kapsam, modülün kullandığı on sistem/uygulama hedefiyle sabittir; ilgisiz uygulamalar gizlenir. XSecurity açıldığında eksik hedefler istenir ve eski kapsam kayıtları kaldırılır. Derlemenin geçmesi her ROM'da çalıştığı anlamına gelmez; bulunamayan hedeflerde özgün davranış korunur ve günlüğe yazılır.
+Yeni seçenekler varsayılan kapalıdır. Framework ekran/ekran yakalama ve imza doğrulama seçenekleri için **System Framework** kapsamı (modern libxposed'da `system`) ve yeniden başlatma gerekir. Kapsam, modülün kullandığı on iki sistem/uygulama hedefiyle sabittir; ilgisiz uygulamalar gizlenir. XSecurity açıldığında eksik hedefler istenir ve eski kapsam kayıtları kaldırılır. Derlemenin geçmesi her ROM'da çalıştığı anlamına gelmez; bulunamayan hedeflerde özgün davranış korunur ve günlüğe yazılır.
 
 #### İmza doğrulamasını atlama ve kurulum seçenekleri
 - Varsayılan kapalı 12 ayrı seçenek: sürüm düşürme, özet doğrulama, kaynak tablosu hizalama, imza karşılaştırma, tam eşleşme, yüklü imza uyumluluğu, sistem gizli API'leri, shared UID, doğrulama ajanı, üretici engel listesi, kalıcı sistem uygulamalarını güncelleme ve SystemUI UID koruması
@@ -200,7 +220,7 @@ Xiaomi 15 Ultra'da Güvenlik 13.5.8 ve 13.6.5 ile test edildi.
 
 ### Kurulum
 1. XSecurity'yi kurun.
-2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Sistem Çerçevesi, Güvenlik, Pil ve performans, Güncelleyici, Joyose, Temalar, Guard Provider, Ayarlar, Sistem Arayüzü ve Telefon.
+2. LSPosed'da etkinleştirin ve kapsamı işaretleyin: Sistem Çerçevesi, Güvenlik, Pil ve performans, Güncelleyici, Joyose, Temalar, Guard Provider, Ayarlar, Sistem Arayüzü, Telefon, Mesajlar ve Başlatıcı.
 3. XSecurity'ye LSPosed iznini verin; yoksa uygulama "Etkin değil" gösterir.
 4. Anahtarlarınızı seçip **Uygulamaları yeniden başlat**'a dokunun (root gerekir) ya da telefonu yeniden başlatın.
 

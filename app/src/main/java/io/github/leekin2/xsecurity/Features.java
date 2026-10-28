@@ -32,6 +32,7 @@ public final class Features {
     public static final String POWER_EXTRAS = "power_extras";
     public static final String POWER_SAVE_REFRESH = "power_save_keep_refresh";
     public static final String POWER_SAVE_BRIGHTNESS = "power_save_keep_brightness";
+    public static final String POWER_SAVE_BOOT = "power_save_keep_on_boot";
     // Charging
     public static final String SMART_CHARGE = "smart_charge_unlock";
     public static final String SUPER_WIRELESS = "super_wireless_charge";
@@ -53,6 +54,15 @@ public final class Features {
     public static final String TOOLBOX = "toolbox_layout";
     public static final String DATA_USAGE = "data_usage_control_center";
     public static final String APP_INFO = "app_info_actions";
+    public static final String APP_INFO_BUTTONS = "app_info_buttons";
+    public static final String APP_ICON_LAUNCH = "app_info_icon_launch";
+    public static final String MMS_ADS = "mms_disable_ad";
+    public static final String MMS_FRAUD = "mms_disable_fraud_risk_tip";
+    public static final String MMS_OVERSEAS = "mms_disable_overseas_risk_tip";
+    public static final String MMS_OLD_DEVICE = "mms_im_old_device";
+    public static final String MMS_COPY_CODE = "mms_verification_code_auto_copy";
+    public static final String HOME_PRESTART = "home_other_disable_prestart";
+    public static final String HOME_REPORT = "home_title_hide_report";
     public static final String DOCK = "dock_50_apps";
     public static final String CAR_SICKNESS = "car_sickness_relief";
     public static final String APPLOCK_SCRAMBLE = "applock_pin_scramble";
@@ -94,13 +104,14 @@ public final class Features {
 
     public static final String[] ALL = {
             BATTERY_RANKING, BATTERY_SCREEN_TIME, BATTERY_HEALTH, CHARGE_PROTECT, BATTERY_LIFE, POWER_EXTRAS,
-            SMART_CHARGE, SUPER_WIRELESS, POWER_SAVE_REFRESH, POWER_SAVE_BRIGHTNESS,
+            SMART_CHARGE, SUPER_WIRELESS, POWER_SAVE_REFRESH, POWER_SAVE_BRIGHTNESS, POWER_SAVE_BOOT,
             GAME_FPS, GAME_KEEP_ENABLED, GT_HDR, GT_SUPER_RES, GT_DYNAMIC_PERF, GT_TOUCH, GT_MI_TIME, GT_EXTRAS, GAME_MODES,
             GAME_TOAST_OFF, GAME_MACRO, GAME_NETWORK, JOYOSE_GPU, JOYOSE_CLOUD_OFF,
             NET_QUOTA_KEEP, NET_HOTSPOT_KEEP, NET_APP_CONTROLS, IMS_ICONS, SIM_MENUS,
             VIDEO_TOOLBOX, CALL_TOOLBOX,
             FLAG_SECURE, PERM_NO_WAIT, SECOND_SPACE, WARNINGS, FBO, TOOLBOX, DATA_USAGE, APP_INFO, DOCK, CAR_SICKNESS, APPLOCK_SCRAMBLE, LOW_BATTERY_QUIET,
             SIM_SUCCESS_DIALOG_OFF, ROOT_CHECK_OFF, USB_INSTALL_CHECK_OFF, LOCKSCREEN_PIN_SCRAMBLE,
+            APP_INFO_BUTTONS, APP_ICON_LAUNCH, MMS_ADS, MMS_FRAUD, MMS_OVERSEAS, MMS_OLD_DEVICE, MMS_COPY_CODE, HOME_PRESTART, HOME_REPORT,
             DARK_MODE_ALL_APPS, STORE_FORCE_CHOOSER, STORE_GETAPPS_MINI,
             CLIPBOARD_WHITELIST, APPLIST_UPLOAD_OFF,
             THEME_THIRD_PARTY, THEME_FIX_RESET,
@@ -115,11 +126,12 @@ public final class Features {
     private static final Set<String> OFF_BY_DEFAULT = Set.of(
             UPDATER_OTA_VALIDATE, UPDATER_NO_AUTO_DIALOG, JOYOSE_CLOUD_OFF, JOYOSE_GPU,
             APPLOCK_SCRAMBLE, LOCKSCREEN_PIN_SCRAMBLE, LOW_BATTERY_QUIET, GAME_TOAST_OFF, GAME_MACRO, GAME_NETWORK,
+            APP_INFO_BUTTONS, APP_ICON_LAUNCH, MMS_ADS, MMS_FRAUD, MMS_OVERSEAS, MMS_OLD_DEVICE, MMS_COPY_CODE, HOME_PRESTART, HOME_REPORT,
             NET_QUOTA_KEEP, NET_HOTSPOT_KEEP, SMART_CHARGE, SUPER_WIRELESS, CAR_SICKNESS,
             SIM_SUCCESS_DIALOG_OFF, ROOT_CHECK_OFF, USB_INSTALL_CHECK_OFF, DARK_MODE_ALL_APPS,
             STORE_FORCE_CHOOSER, STORE_GETAPPS_MINI, THEME_THIRD_PARTY, THEME_FIX_RESET, FLAG_SECURE,
             CLIPBOARD_WHITELIST, APPLIST_UPLOAD_OFF,
-            POWER_SAVE_REFRESH, POWER_SAVE_BRIGHTNESS, GAME_KEEP_ENABLED, NET_APP_CONTROLS, IMS_ICONS, SIM_MENUS,
+            POWER_SAVE_REFRESH, POWER_SAVE_BRIGHTNESS, POWER_SAVE_BOOT, GAME_KEEP_ENABLED, NET_APP_CONTROLS, IMS_ICONS, SIM_MENUS,
             CP_DOWNGRADE, CP_VERIFY, CP_ARSC, CP_DIGEST, CP_EXACT, CP_PREVIOUS, CP_HIDDEN, CP_SHARED, CP_AGENT, CP_BLOCK, CP_PERSISTENT, CP_SYSTEM_UI_UID);
 
     /**
@@ -144,8 +156,14 @@ public final class Features {
     static void attach(SharedPreferences value) { preferences = value; }
 
     static boolean enabled(String key) {
-        SharedPreferences p = preferences;
-        return p == null ? defaultValue(key) : p.getBoolean(key, defaultValue(key));
+        return read(preferences, key);
+    }
+
+    /** Old installs keep their header row until the new independent switch is explicitly saved. */
+    public static boolean read(SharedPreferences p, String key) {
+        if (p == null) return defaultValue(key);
+        boolean fallback = APP_INFO_BUTTONS.equals(key) && p.getBoolean(APP_INFO, false);
+        return p.getBoolean(key, fallback);
     }
 
     /** A stored list of package names (empty when unset or settings are unavailable). */
