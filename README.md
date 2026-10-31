@@ -1,5 +1,13 @@
 # XSecurity
 
+> [!IMPORTANT]
+> **XSecurity has moved to [XApps](https://github.com/Leekin2/XApps).** XGoogle, XSecurity and XNotify are now one app and one root module.
+> Download **XApps** from its [latest release](https://github.com/Leekin2/XApps/releases/latest). Flashing the XApps zip moves your XSecurity settings over and removes XSecurity by itself.
+> This repository stays for history; new versions are released only in XApps.
+>
+> **XSecurity artık [XApps](https://github.com/Leekin2/XApps) içinde.** Yeni sürümler yalnızca XApps olarak yayınlanıyor; XApps zip'i ayarlarınızı taşır ve XSecurity'i kendisi kaldırır.
+
+
 **Unlocks for the HyperOS Security app, Battery and performance, Game Turbo and the system updater.**
 An LSPosed module for the HyperOS 4 China ROM.
 
